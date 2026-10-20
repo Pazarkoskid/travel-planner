@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: travel
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-travel-dev-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel -d travel"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      POSTGRES_DB: travel
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-travel-dev-password}
+      POSTGRES_HOST: db
+      SEED_CSV: /data/seed_places.csv
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py seed_demo &&
+             (python manage.py fetch_images || true) &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data:ro
+      - media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_PROXY: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  media:

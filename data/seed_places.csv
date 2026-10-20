@@ -1,0 +1,26 @@
+city_slug,slug,name,category,lat,lng,visit_duration_min,is_required_landmark,wiki_query,description
+ohrid,sv-naum,Манастир Св. Наум,RELIGIOUS,40.9137,20.7406,120,1,Monastery of Saint Naum,Манастир од X век на јужниот брег на Охридското Езеро.
+ohrid,kaneo,Црква Св. Јован Канео,RELIGIOUS,41.1110,20.7883,45,1,Church of St. John at Kaneo,Црква на карпа над езерото; едно од најфотографираните места во Македонија.
+ohrid,samoilova-tvrdina,Самуилова тврдина,HISTORY,41.1153,20.7958,75,1,Samuel's Fortress Ohrid,Средновековна тврдина на највисокиот дел од стариот град.
+ohrid,plaoshnik,Плаошник — Св. Климент и Пантелејмон,RELIGIOUS,41.1128,20.7911,60,1,Plaošnik Ohrid,Археолошки локалитет и обновена црква поврзана со Св. Климент Охридски.
+ohrid,anticki-teatar,Антички театар,HISTORY,41.1147,20.7991,30,1,Ancient Theatre of Ohrid,Хеленистички театар во стариот дел на градот.
+ohrid,sv-sofija,Црква Св. Софија,RELIGIOUS,41.1134,20.7963,45,1,Church of St. Sophia Ohrid,Една од најважните средновековни цркви со вредни фрески.
+ohrid,perivlepta,Црква Св. Богородица Перивлепта,RELIGIOUS,41.1160,20.7979,40,1,Church of St. Mary Peribleptos Ohrid,Црква од XIII век со галерија на икони.
+ohrid,robevi,Робевата куќа — Национален музеј,MUSEUM,41.1139,20.7990,60,1,Robevci House Ohrid museum,Градска куќа од XIX век со археолошки и етнолошки збирки.
+ohrid,zaliv-na-koskite,Музеј на вода „Залив на коските“,MUSEUM,41.0130,20.8030,75,1,Bay of Bones Ohrid museum on water,Реконструирана праисториска населба на колови.
+ohrid,carsija,Стара охридска чаршија,CULTURE,41.1167,20.8016,60,1,Ohrid old town,Пешачка зона со занаети и локални продавници.
+ohrid,galicica-vidikovec,Галичица — видиковец,VIEWPOINT,40.9890,20.8180,90,0,Galičica National Park,Поглед кон Охридското и Преспанското Езеро.
+ohrid,lagadin,Плажа Лагадин,BEACH,41.0560,20.7880,120,0,Lake Ohrid,Плажа на источниот брег на езерото.
+ohrid,kej,Охридски кеј,NATURE,41.1125,20.8010,45,0,Ohrid lake shore,Прошетка покрај езерото.
+ohrid,izvori-crn-drim,Извори на Црн Дрим,NATURE,40.9150,20.7420,60,0,Black Drin springs Saint Naum,Извори и чамци во близина на Св. Наум.
+skopje,kamen-most,Камен мост,HISTORY,41.9981,21.4336,20,1,Stone Bridge Skopje,Симбол на Скопје над реката Вардар.
+skopje,stara-carsija,Стара скопска чаршија,CULTURE,42.0007,21.4375,90,1,Old Bazaar Skopje,Еден од најголемите стари базари на Балканот.
+skopje,kale,Тврдина Кале,HISTORY,42.0001,21.4334,45,1,Skopje Fortress,Тврдина над стариот дел на градот.
+skopje,majka-tereza,Спомен-куќа на Мајка Тереза,MUSEUM,41.9955,21.4307,40,1,Memorial House of Mother Teresa,Музеј посветен на Мајка Тереза.
+skopje,sv-spas,Црква Св. Спас,RELIGIOUS,42.0010,21.4351,30,1,Church of the Holy Saviour Skopje,Црква со резбан иконостас.
+skopje,milenium-krst,Милениумски крст — Водно,VIEWPOINT,41.9644,21.3949,90,1,Millennium Cross,Видиковец на врвот Крстовар.
+skopje,matka,Кањон Матка,NATURE,41.9520,21.2990,180,1,Matka Canyon,Кањон со езеро и пешачки патеки.
+bitola,sirok-sokak,Широк сокак,CULTURE,41.0297,21.3347,60,1,Širok Sokak Bitola,Главната пешачка улица на Битола.
+bitola,heraklea,Хераклеја Линкестис,HISTORY,41.0108,21.3428,90,1,Heraclea Lyncestis,Античко-доцноантички град со мозаици.
+bitola,saat-kula,Саат кула,HISTORY,41.0313,21.3347,20,1,Clock Tower Bitola,Симбол на старата чаршија.
+bitola,pelister,Национален парк Пелистер,NATURE,41.0130,21.2350,180,1,Pelister National Park,Планински национален парк над Битола.

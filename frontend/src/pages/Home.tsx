@@ -145,8 +145,8 @@ export default function Home() {
         <Photo className="hero-bg" src={heroImg} alt="Црквата Св. Јован Канео над Охридското Езеро" eager seed={1} />
         <div className="hero-shade" aria-hidden />
         <div className="container hero-inner">
-          <p className="hero-script-small">Истражи</p>
-          <h1 className="hero-script">Откријте Македонија</h1>
+          <p className="hero-script-small">Истражи ja</p>
+          <h1 className="hero-script">Македонија</h1>
           <div className="hero-side">
             <p>Планови само со проверени места, оптимизирана рута и резервации кај локални домаќини.</p>
             <Link to="/trips/new" className="btn btn-white">Направи план</Link>

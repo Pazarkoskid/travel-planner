@@ -1,6 +1,8 @@
 // Тенок API клиент. JWT токените се чуваат во localStorage (доволно за MVP;
 // за продукција — httpOnly cookie преку backend).
-const BASE = "/api/v1";
+// Локално: празно (Vite proxy). На Render: VITE_API_URL=https://<backend>.onrender.com
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+const BASE = `${API_ORIGIN}/api/v1`;
 const ACCESS = "tpm_access";
 const REFRESH = "tpm_refresh";
 

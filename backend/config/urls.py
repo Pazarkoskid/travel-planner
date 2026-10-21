@@ -20,5 +20,5 @@ urlpatterns = [
     path("api/v1/", include(api_patterns)),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and not settings.SUPABASE_S3_ENDPOINT:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

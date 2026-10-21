@@ -37,7 +37,10 @@ def env_bool(name, default=False):
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,backend").split(",")
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,backend").split(",") if h.strip()]
+# Render го поставува RENDER_EXTERNAL_HOSTNAME (пр. travel-backend.onrender.com).
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "storages",
     "corsheaders",
     "core",
     "accounts",
@@ -61,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -88,7 +93,18 @@ TEMPLATES = [
     }
 ]
 
-if os.environ.get("POSTGRES_DB"):
+if os.environ.get("DATABASE_URL"):
+    # Supabase / Render / било кој PostgreSQL преку еден connection string.
+    import dj_database_url
+
+    _db = dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600, conn_health_checks=True,
+                                ssl_require=env_bool("DATABASE_SSL", True))
+    if _db.get("PORT") in (6543, "6543"):
+        # Supabase transaction pooler (Supavisor :6543): без серверски курсори и без трајни конекции.
+        _db["DISABLE_SERVER_SIDE_CURSORS"] = True
+        _db["CONN_MAX_AGE"] = 0
+    DATABASES = {"default": _db}
+elif os.environ.get("POSTGRES_DB"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -127,6 +143,40 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Статични фајлови (Django admin) ги служи WhiteNoise — без посебен сервер.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+                    if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
+# Медиуми (фото-посети, аватари) во Supabase Storage преку S3 API.
+# Render (free) нема траен диск — без ова качените фотографии се губат при секој deploy.
+SUPABASE_S3_ENDPOINT = os.environ.get("SUPABASE_S3_ENDPOINT", "")  # https://<ref>.storage.supabase.co/storage/v1/s3
+if SUPABASE_S3_ENDPOINT:
+    # boto3 >= 1.36 праќа нови checksum заглавја кои S3-компатибилните сервиси не секогаш ги примаат.
+    os.environ.setdefault("AWS_REQUEST_CHECKSUM_CALCULATION", "when_required")
+    os.environ.setdefault("AWS_RESPONSE_CHECKSUM_VALIDATION", "when_required")
+    _bucket = os.environ.get("SUPABASE_S3_BUCKET", "media")
+    _ref = os.environ.get("SUPABASE_PROJECT_REF") or SUPABASE_S3_ENDPOINT.split("//", 1)[-1].split(".", 1)[0]
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "endpoint_url": SUPABASE_S3_ENDPOINT,
+            "region_name": os.environ.get("SUPABASE_S3_REGION", "eu-central-1"),
+            "access_key": os.environ.get("SUPABASE_S3_ACCESS_KEY_ID", ""),
+            "secret_key": os.environ.get("SUPABASE_S3_SECRET_ACCESS_KEY", ""),
+            "bucket_name": _bucket,
+            "addressing_style": "path",
+            "signature_version": "s3v4",
+            "default_acl": None,
+            "file_overwrite": False,
+            "querystring_auth": False,
+            # Јавен bucket → трајни јавни URL-и без потпис.
+            "custom_domain": f"{_ref}.supabase.co/storage/v1/object/public/{_bucket}",
+        },
+    }
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticatedOrReadOnly",),
@@ -155,7 +205,11 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
 }
 
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+CORS_ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in
+                        os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",") if o.strip()]
+CSRF_TRUSTED_ORIGINS = [o.strip().rstrip("/") for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}")
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True

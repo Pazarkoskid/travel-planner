@@ -6,6 +6,7 @@
 """
 import json
 import logging
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
@@ -65,7 +66,14 @@ def get_weather(lat, lng):
     try:
         current = _get("weather", lat, lng)
         forecast = _get("forecast", lat, lng)
-    except Exception as exc:  # мрежа, timeout, неважечки клуч
+    except urllib.error.HTTPError as exc:
+        logger.warning("OpenWeather HTTP error: %s", exc)
+        if exc.code == 401:
+            raise ServiceError("OpenWeather го одби клучот (401). Нов клуч се активира до 2 часа по регистрацијата; "
+                               "проверете дали е точно копиран и дали е-поштата е потврдена.",
+                               code="weather_invalid_key", status_code=503)
+        raise ServiceError("Прогнозата моментално не е достапна.", code="weather_unavailable", status_code=503)
+    except Exception as exc:  # мрежа, timeout
         logger.warning("OpenWeather error: %s", exc)
         raise ServiceError("Прогнозата моментално не е достапна.", code="weather_unavailable", status_code=503)
     data = {

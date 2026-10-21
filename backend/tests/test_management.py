@@ -151,3 +151,46 @@ def test_weather_upstream_errors(settings, city, err):
     with mock.patch.object(weather, "_get", side_effect=err):
         r = client_for().get(f"/api/v1/weather/?city={city.pk}")
     assert r.status_code == 503 and r.json()["error"]["code"] == "weather_unavailable"
+
+
+def test_weather_invalid_key_is_explained(settings, city):
+    import urllib.error
+
+    settings.OPENWEATHER_API_KEY = "bad"
+    cache.clear()
+    err = urllib.error.HTTPError("u", 401, "Unauthorized", {}, None)
+    with mock.patch.object(weather, "_get", side_effect=err):
+        r = client_for().get(f"/api/v1/weather/?city={city.pk}")
+    assert r.status_code == 503 and r.json()["error"]["code"] == "weather_invalid_key"
+
+
+# --- Deploy (Render + Supabase) -------------------------------------------------
+
+def test_database_url_transaction_pooler_settings(monkeypatch):
+    import importlib
+
+    from config import settings as cfg
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://postgres.ref:p%40ss@aws-0-eu-central-1.pooler.supabase.com:6543/postgres")
+    try:
+        mod = importlib.reload(cfg)
+        db = mod.DATABASES["default"]
+        assert db["USER"] == "postgres.ref" and db["PASSWORD"] == "p@ss"
+        assert db["OPTIONS"]["sslmode"] == "require" and db["DISABLE_SERVER_SIDE_CURSORS"] and db["CONN_MAX_AGE"] == 0
+    finally:
+        monkeypatch.delenv("DATABASE_URL")
+        importlib.reload(cfg)
+
+
+def test_seed_if_empty_skips_existing_data(city, capsys):
+    from django.core.management import call_command
+
+    call_command("seed_demo", "--if-empty")
+    assert "прескокнат" in capsys.readouterr().out
+
+
+def test_secure_db_noop_on_sqlite(capsys):
+    from django.core.management import call_command
+
+    call_command("secure_db")
+    assert "прескокнато" in capsys.readouterr().out

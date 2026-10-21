@@ -2,6 +2,9 @@
 
     python manage.py seed_demo            # идемпотентно
     python manage.py seed_demo --reset    # брише демо бизниси/резервации пред повторно полнење
+    python manage.py seed_demo --if-empty # само ако базата е празна (се користи при deploy на Render)
+
+SEED_ADMIN_PASSWORD (env) ја заменува демо лозинката на admin при прво креирање — задолжително за јавен deploy.
 """
 import csv
 import io
@@ -59,9 +62,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--csv", default=None)
         parser.add_argument("--reset", action="store_true")
+        parser.add_argument("--if-empty", action="store_true", help="Прескокни ако веќе има градови во базата")
 
     @transaction.atomic
     def handle(self, *args, **opts):
+        if opts["if_empty"] and City.objects.exists():
+            self.stdout.write("Базата веќе има податоци — seed е прескокнат.")
+            return
         if opts["reset"]:
             Review.objects.all().delete()
             Reservation.objects.all().delete()
@@ -92,7 +99,8 @@ class Command(BaseCommand):
                 "email": f"{username}@example.com", "role": role, "first_name": username.capitalize(),
                 "is_staff": role == User.Role.ADMIN, "is_superuser": role == User.Role.ADMIN})
             if created:
-                u.set_password(PASSWORDS[username])
+                pw = os.environ.get("SEED_ADMIN_PASSWORD") if username == "admin" else None
+                u.set_password(pw or PASSWORDS[username])
                 u.save()
             users[username] = u
         users["turist"].bio = "Сакам езера, манастири и добра храна."

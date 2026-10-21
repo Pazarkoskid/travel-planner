@@ -94,12 +94,54 @@ EXISTING_ART = {
 }
 
 
+# Печати за знаменитости (стил „печат во пасош“): „град/место“ → (кратко име за печатот, мотив, категорија)
+STAMP_INK = {
+    "RELIGIOUS": "#8a2f3c", "HISTORY": "#8a5a12", "MUSEUM": "#2f4f8a", "CULTURE": "#1f6a5a",
+    "VIEWPOINT": "#2f6b34", "NATURE": "#2f6b34", "BEACH": "#1b64a8",
+}
+PLACE_STAMPS = {
+    "ohrid/sv-naum": ("Св. Наум", "monastery", "RELIGIOUS"),
+    "ohrid/kaneo": ("Св. Јован Канео", "kaneo", "RELIGIOUS"),
+    "ohrid/samoilova-tvrdina": ("Самуилова тврдина", "fortress", "HISTORY"),
+    "ohrid/plaoshnik": ("Плаошник", "domes", "RELIGIOUS"),
+    "ohrid/anticki-teatar": ("Антички театар", "theatre", "HISTORY"),
+    "ohrid/sv-sofija": ("Св. Софија", "basilica", "RELIGIOUS"),
+    "ohrid/perivlepta": ("Перивлепта", "church", "RELIGIOUS"),
+    "ohrid/robevi": ("Робевата куќа", "oldhouse", "MUSEUM"),
+    "ohrid/zaliv-na-koskite": ("Залив на коските", "stilts", "MUSEUM"),
+    "ohrid/carsija": ("Охридска чаршија", "bazaar", "CULTURE"),
+    "ohrid/galicica-vidikovec": ("Галичица", "viewpoint", "VIEWPOINT"),
+    "ohrid/lagadin": ("Плажа Лагадин", "beach", "BEACH"),
+    "ohrid/kej": ("Охридски кеј", "quay", "NATURE"),
+    "ohrid/izvori-crn-drim": ("Извори на Црн Дрим", "springs", "NATURE"),
+    "skopje/kamen-most": ("Камен мост", "bridge", "HISTORY"),
+    "skopje/stara-carsija": ("Скопска чаршија", "bazaar", "CULTURE"),
+    "skopje/kale": ("Тврдина Кале", "fortress", "HISTORY"),
+    "skopje/majka-tereza": ("Мајка Тереза", "memorial", "MUSEUM"),
+    "skopje/sv-spas": ("Св. Спас", "church", "RELIGIOUS"),
+    "skopje/milenium-krst": ("Милениумски крст", "cross", "VIEWPOINT"),
+    "skopje/matka": ("Кањон Матка", "canyon", "NATURE"),
+    "bitola/sirok-sokak": ("Широк сокак", "street", "CULTURE"),
+    "bitola/heraklea": ("Хераклеја", "columns", "HISTORY"),
+    "bitola/saat-kula": ("Саат кула", "clocktower", "HISTORY"),
+    "bitola/pelister": ("Пелистер", "pines", "NATURE"),
+}
+
+
+def stamp_art(key):
+    return "stamp-" + key.replace("/", "-")
+
+
 def location_art(num, slug):
     return f"loc-{num:02d}-{slug}"
 
 
 def art_for_code(code):
     name = EXISTING_ART.get(code)
+    if not name and code.startswith("place-"):
+        city, _, slug = code[len("place-"):].partition("-")
+        if f"{city}/{slug}" in PLACE_STAMPS:
+            name = stamp_art(f"{city}/{slug}")
     return ART.format(name) if name else ""
 
 
@@ -117,5 +159,7 @@ def sync_catalog(Badge):
     order = {"explorer": 50, "city-ohrid-100": 60, "city-skopje-100": 61, "city-bitola-100": 62, "macedonia-explorer": 99}
     for code, art in EXISTING_ART.items():
         Badge.objects.filter(code=code).update(art=ART.format(art), sort=order.get(code, 0))
-    # Беџовите за поединечни места остануваат класичен печат (сликата е на регионалниот беџ).
-    Badge.objects.filter(kind="PLACE").exclude(art="").update(art="")
+    # Печати за знаменитости (место без печат во каталогот останува со иконата 📸).
+    for key in PLACE_STAMPS:
+        city, slug = key.split("/")
+        Badge.objects.filter(code=f"place-{city}-{slug}").update(art=ART.format(stamp_art(key)))

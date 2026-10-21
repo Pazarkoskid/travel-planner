@@ -103,13 +103,8 @@ export default function BadgesPage() {
       <Section title="Градови и предели" hint="40 локации низ Македонија, нумерирани како во албум." badges={groups.regions}
                earned={earned} filter={filter} />
       {groups.places.length > 0 && (
-        <details className="panel">
-          <summary><h2 style={{ margin: 0 }}>Печати за знаменитости</h2><span className="pill pill-muted">{groups.places.filter((b) => earned.has(b.code)).length} од {groups.places.length}</span></summary>
-          <div className="stamps" style={{ marginTop: 16 }}>
-            {groups.places.filter((b) => filter === "all" || (filter === "earned") === earned.has(b.code))
-              .map((b) => <Stamp key={b.code} badge={b} date={earned.get(b.code)} locked={!earned.has(b.code)} />)}
-          </div>
-        </details>
+        <Section title="Печати за знаменитости" hint="Печат во пасошот за секоја документирана знаменитост." badges={groups.places}
+                 earned={earned} filter={filter} />
       )}
     </div>
   );

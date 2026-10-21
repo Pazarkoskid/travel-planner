@@ -67,3 +67,11 @@ def test_rule_met_positive_cases():
     assert services.rule_met(rules["photographer"], stats)
     assert not services.rule_met(rules["nature-explorer"], stats)
     assert not services.rule_met({}, stats)
+
+
+def test_place_badge_gets_stamp_art(tourist, places):
+    from gamification.models import Badge as B
+
+    _, unlocked = visit(tourist, places["kaneo"], (70, 20, 130))
+    assert B.objects.get(code="place-ohrid-kaneo").art == "/badges/stamp-ohrid-kaneo.webp"
+    assert catalog.art_for_code("place-ohrid-unknown") == ""

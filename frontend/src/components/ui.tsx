@@ -98,7 +98,7 @@ export function Stamp({ badge, date, locked = false }: { badge: Badge; date?: st
       </span>
       <span className="stamp-name">{badge.name}</span>
       {date && <span className="stamp-date">{fmtDate(date)}</span>}
-      {locked && badge.kind !== "REGION" && <span className="stamp-date">{badge.description}</span>}
+      {locked && (badge.kind === "CATEGORY" || badge.kind === "LEVEL") && <span className="stamp-date">{badge.description}</span>}
     </div>
   );
 }

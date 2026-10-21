@@ -255,7 +255,7 @@ p { margin: 0 0 0.6em; max-width: 70ch; }
 @media (max-width: 760px) {
   .hero-full { min-height: 78vh; align-items: flex-end; }
   .hero-inner { padding-bottom: 96px; }
-  .hero-script-small { margin-left: 0; font-size: clamp(2.0rem, 3vw, 2.4rem); }
+  .hero-script-small { margin-left: 0; font-size: clamp(2.0rem, 3vw, 2.4rem);}
   .hero-script { font-size: clamp(2.9rem, 14vw, 4.2rem); margin-bottom: 18px; }
   .hero-side { margin-left: 0; max-width: none; }
   .hero-credit { bottom: 58px; right: 12px; max-width: 80%; }

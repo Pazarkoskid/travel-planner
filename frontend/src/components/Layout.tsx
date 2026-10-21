@@ -44,7 +44,7 @@ export default function Layout() {
       <header className={`topbar ${isHome && !scrolled && !open ? "topbar-over" : ""}`}>
         <div className="container topbar-inner">
           <NavLink to="/" className="brand">
-            <img src="/favicon.svg" width={28} height={28} alt="" />
+            <img src="/favicon.svg" width={34} height={34} alt="" />
             <span className="brand-name">Travel Planner <span>МК</span></span>
           </NavLink>
 
@@ -125,7 +125,7 @@ export default function Layout() {
           </div>
           <div className="footer-grid">
             <div>
-              <NavLink to="/" className="brand"><img src="/favicon.svg" width={28} height={28} alt="" /><span className="brand-name">Travel Planner <span>МК</span></span></NavLink>
+              <NavLink to="/" className="brand"><img src="/favicon.svg" width={34} height={34} alt="" /><span className="brand-name">Travel Planner <span>МК</span></span></NavLink>
               <p className="footer-about">Персонализирани планови низ Северна Македонија, само со проверени места и локални услуги.</p>
             </div>
             <div>

@@ -13,6 +13,7 @@ services:
       python manage.py collectstatic --noinput &&
       python manage.py migrate --noinput &&
       python manage.py secure_db &&
+      python manage.py recompute_badges &&
       python manage.py seed_demo --if-empty &&
       (python manage.py fetch_images || true)
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60

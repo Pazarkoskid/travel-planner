@@ -90,6 +90,7 @@ export default function Layout() {
             <NavLink to="/stay" className="sheet-link"><Icon name="bed" />Сместување</NavLink>
             <NavLink to="/boat-tours" className="sheet-link"><Icon name="boat" />Бродски тури</NavLink>
             <NavLink to="/services" className="sheet-link"><Icon name="fork" />Ресторани и такси</NavLink>
+            <NavLink to="/badges" className="sheet-link"><Icon name="star" />Беџови и колекција</NavLink>
             {user ? (
               <>
                 <p className="sheet-title">Мој профил</p>
@@ -134,6 +135,7 @@ export default function Layout() {
               <NavLink to="/stay">Сместување</NavLink>
               <NavLink to="/boat-tours">Бродски тури</NavLink>
               <NavLink to="/services">Ресторани и такси</NavLink>
+              <NavLink to="/badges">Беџови и колекција</NavLink>
             </div>
             <div>
               <h3>Патници</h3>

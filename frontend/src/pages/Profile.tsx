@@ -124,7 +124,10 @@ export function MyProfile() {
       {g.loading && <Loading />}
       {g.data && (
         <>
-          <section className="panel"><h2>Мој пасош</h2><BadgeGrid badges={g.data.badges} /></section>
+          <section className="panel">
+            <div className="row between wrap gap"><h2>Мој пасош</h2><Link to="/badges" className="btn btn-ghost btn-sm">Целата колекција</Link></div>
+            <BadgeGrid badges={g.data.badges} />
+          </section>
           <section className="panel"><h2>Истраженост по град</h2><CityProgressList items={g.data.city_progress} /></section>
           <section className="panel">
             <h2>Мои фото-посети</h2>

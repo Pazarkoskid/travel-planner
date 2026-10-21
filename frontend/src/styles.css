@@ -678,3 +678,30 @@ a.contact-line:hover { color: var(--green-2); }
 }
 .stop-head { font-size: 0.74rem; font-weight: 600; color: var(--ink-3); }
 @media (max-width: 900px) { .stop-head { display: none; } }
+
+/* ================= Беџови со слика ================= */
+.stamp-art-wrap { position: relative; display: inline-grid; place-items: center; }
+.badge-art { width: 112px; height: 112px; border-radius: 50%; filter: drop-shadow(0 6px 12px rgba(13, 54, 64, 0.22)); transition: transform 0.2s; }
+.stamp:hover .badge-art { transform: translateY(-2px) rotate(-2deg); }
+.badge-art.locked { filter: grayscale(1) contrast(0.85) brightness(1.08); opacity: 0.45; }
+.stamp-locked .stamp-ring { opacity: 0.45; filter: grayscale(1); }
+.stamp-locked .stamp-name { color: var(--ink-2); }
+.stamp-lock { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); background: var(--paper); color: var(--ink-2); border: 1px solid var(--rule-2); border-radius: 999px; padding: 1px 8px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; box-shadow: var(--shadow-1); }
+.stamps-art { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px 16px; }
+.badge-chip { display: inline-flex; align-items: center; gap: 6px; }
+.badge-chip img { border-radius: 50%; margin: -2px 0 -2px -6px; }
+.badges-hero { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: end; }
+.badges-hero h1 { margin-bottom: 6px; }
+.badges-hero p.muted { margin: 0; }
+.badges-score { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-lg); padding: 18px 20px; display: grid; gap: 6px; box-shadow: var(--shadow-1); }
+.badges-score strong { font-size: 2rem; line-height: 1; color: var(--teal-dark); letter-spacing: -0.03em; }
+.badges-score strong span { font-size: 1rem; color: var(--ink-2); font-weight: 600; letter-spacing: 0; }
+.badges-score .small-strong { font-size: 1.1rem; }
+.badges-score .btn { justify-self: start; margin-top: 4px; }
+a.promo-card { text-decoration: none; }
+a.promo-card:hover { color: #fff; transform: rotate(-4deg) translateY(-2px); }
+@media (max-width: 760px) {
+  .badges-hero { grid-template-columns: 1fr; }
+  .stamps-art { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .badge-art { width: 104px; height: 104px; }
+}

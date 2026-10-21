@@ -214,7 +214,9 @@ function CheckInForm({ place, onDone }: { place: Place; onDone: () => void }) {
             </strong>
             <ul className="small">{result.checkin.verification_notes.map((n) => <li key={n}>{n}</li>)}</ul>
             {result.unlocked_badges.length > 0 && (
-              <div className="badges">{result.unlocked_badges.map((b) => <span key={b.code} className="badge-chip">{b.icon} {b.name}</span>)}</div>
+              <div className="badges">{result.unlocked_badges.map((b) => (
+                <span key={b.code} className="badge-chip">{b.art ? <img src={b.art} width={28} height={28} alt="" /> : b.icon} {b.name}</span>
+              ))}</div>
             )}
             {result.city_progress && (
               <div className="small">

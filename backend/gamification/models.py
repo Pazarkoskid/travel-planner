@@ -6,6 +6,8 @@ class Badge(models.Model):
     class Kind(models.TextChoices):
         PLACE = "PLACE", "Беџ за место"
         LEVEL = "LEVEL", "Ниво"
+        REGION = "REGION", "Град или предел"
+        CATEGORY = "CATEGORY", "Достигнување"
 
     class Level(models.TextChoices):
         EXPLORER = "EXPLORER", "Истражувач"
@@ -22,6 +24,13 @@ class Badge(models.Model):
     place = models.ForeignKey("destinations.Place", null=True, blank=True, on_delete=models.CASCADE, related_name="badges")
     city = models.ForeignKey("destinations.City", null=True, blank=True, on_delete=models.CASCADE, related_name="badges")
     icon = models.CharField(max_length=8, default="🏅")
+    art = models.CharField(max_length=200, blank=True, help_text="Слика од frontend, пр. /badges/loc-02-ohrid.webp")
+    rule = models.JSONField(default=dict, blank=True, help_text="Правило за REGION/CATEGORY (види gamification/catalog.py)")
+    available = models.BooleanField(default=True, help_text="False = прикажан како „наскоро“, не може да се освои")
+    sort = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort", "name"]
 
     def __str__(self):
         return self.name

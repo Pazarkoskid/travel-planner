@@ -219,9 +219,12 @@ export interface Badge {
   code: string;
   name: string;
   description: string;
-  kind: "PLACE" | "LEVEL";
+  kind: "PLACE" | "LEVEL" | "REGION" | "CATEGORY";
   level: string;
   icon: string;
+  art?: string;
+  available?: boolean;
+  sort?: number;
   holders_count?: number;
 }
 

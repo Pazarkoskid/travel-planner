@@ -200,6 +200,10 @@ class Command(BaseCommand):
             gamification.ensure_city_badges(city)
             for place in city.places.filter(is_required_landmark=True):
                 gamification.ensure_place_badge(place)
+        from gamification import catalog
+        from gamification.models import Badge
+
+        catalog.sync_catalog(Badge)
         if not PhotoCheckIn.objects.filter(user=turist).exists():
             for i, slug in enumerate(("sv-naum", "kaneo", "samoilova-tvrdina")):
                 p = Place.objects.get(city=ohrid, slug=slug)

@@ -76,15 +76,29 @@ export const Field = ({ label, children, hint }: { label: string; children: Reac
 );
 
 /** Беџ во форма на печат од пасош. */
-export function Stamp({ badge, date }: { badge: Badge; date?: string }) {
-  const cls = ["stamp", badge.kind === "LEVEL" ? "stamp-level" : "", badge.level === "CITY_MASTER" ? "stamp-master" : ""].join(" ");
-  return (
-    <div className={cls} title={badge.description}>
-      <div className="stamp-ring" aria-hidden>
+export function BadgeArt({ badge, size = 112, locked = false }: { badge: Badge; size?: number; locked?: boolean }) {
+  if (!badge.art) {
+    return (
+      <div className="stamp-ring" style={{ width: size, height: size }} aria-hidden>
         <span className="stamp-icon">{badge.icon}</span>
       </div>
+    );
+  }
+  return <img className={locked ? "badge-art locked" : "badge-art"} src={badge.art} width={size} height={size} alt="" loading="lazy" />;
+}
+
+export function Stamp({ badge, date, locked = false }: { badge: Badge; date?: string; locked?: boolean }) {
+  const cls = ["stamp", badge.art ? "stamp-has-art" : "", badge.kind === "LEVEL" ? "stamp-level" : "",
+    badge.level === "CITY_MASTER" ? "stamp-master" : "", locked ? "stamp-locked" : ""].join(" ");
+  return (
+    <div className={cls} title={badge.description}>
+      <span className="stamp-art-wrap">
+        <BadgeArt badge={badge} locked={locked} />
+        {locked && <span className="stamp-lock" aria-hidden>{badge.available === false ? "Наскоро" : "🔒"}</span>}
+      </span>
       <span className="stamp-name">{badge.name}</span>
       {date && <span className="stamp-date">{fmtDate(date)}</span>}
+      {locked && badge.kind !== "REGION" && <span className="stamp-date">{badge.description}</span>}
     </div>
   );
 }

@@ -21,7 +21,8 @@ class BadgeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Badge
-        fields = ("id", "code", "name", "description", "kind", "level", "place", "city", "icon", "holders_count")
+        fields = ("id", "code", "name", "description", "kind", "level", "place", "city", "icon", "art", "available",
+                  "sort", "holders_count")
 
 
 class UserBadgeSerializer(serializers.ModelSerializer):
@@ -117,7 +118,9 @@ def place_gallery(request, pk):
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def badges(request):
-    qs = Badge.objects.annotate(holders_count=Count("holders")).order_by("kind", "name")
+    qs = Badge.objects.annotate(holders_count=Count("holders")).order_by("sort", "name")
+    if request.query_params.get("kind"):
+        qs = qs.filter(kind__in=request.query_params["kind"].upper().split(","))
     if request.query_params.get("city"):
         qs = qs.filter(city__slug=request.query_params["city"])
     return Response(BadgeSerializer(qs, many=True).data)

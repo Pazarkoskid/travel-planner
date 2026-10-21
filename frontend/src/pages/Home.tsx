@@ -145,7 +145,7 @@ export default function Home() {
         <Photo className="hero-bg" src={heroImg} alt="Црквата Св. Јован Канео над Охридското Езеро" eager seed={1} />
         <div className="hero-shade" aria-hidden />
         <div className="container hero-inner">
-          <p className="hero-script-small">Истражи ja</p>
+          <p className="hero-script-small">Истражи ја</p>
           <h1 className="hero-script">Македонија</h1>
           <div className="hero-side">
             <p>Планови само со проверени места, оптимизирана рута и резервации кај локални домаќини.</p>
@@ -197,11 +197,11 @@ export default function Home() {
       <section className="container home-section steps-section">
         <div className="steps-copy">
           <h2>3 лесни чекори до вашето следно патување</h2>
-          <div className="promo-card">
+          <Link to="/badges" className="promo-card">
             <span className="promo-small">Соберете ги сите</span>
             <span className="promo-big">{ohridTotal}</span>
             <span className="promo-small">печати во Охрид</span>
-          </div>
+          </Link>
         </div>
         <ol className="step-cards">
           <li><span className="step-num">1</span><div><strong>Изберете дестинација</strong><span>Град, датуми, гости, буџет и интереси.</span></div></li>

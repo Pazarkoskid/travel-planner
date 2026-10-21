@@ -17,6 +17,8 @@ from django.utils import timezone
 from PIL import Image
 
 from core.exceptions import ServiceError
+
+from . import catalog
 from core.geo import haversine_m
 from destinations.models import City, Place
 from notifications.models import notify
@@ -138,25 +140,28 @@ def ensure_city_badges(city):
     for code, name, desc, level, icon in specs:
         out[level], _ = Badge.objects.get_or_create(
             code=code, defaults={"name": name, "description": desc, "kind": Badge.Kind.LEVEL, "level": level,
-                                 "city": city, "icon": icon})
+                                 "city": city, "icon": icon, "art": catalog.art_for_code(code), "sort": 60 if code.endswith("-100") else 300})
     return out
 
 
 def ensure_place_badge(place):
+    code = f"place-{place.city.slug}-{place.slug}"
     badge, _ = Badge.objects.get_or_create(
-        code=f"place-{place.city.slug}-{place.slug}",
+        code=code,
         defaults={"name": place.name, "description": f"Документирана посета на {place.name}",
-                  "kind": Badge.Kind.PLACE, "place": place, "city": place.city, "icon": "📸"})
+                  "kind": Badge.Kind.PLACE, "place": place, "city": place.city, "icon": "📸",
+                  "art": catalog.art_for_code(code), "sort": 200})
     return badge
 
 
 def ensure_global_badges():
     explorer, _ = Badge.objects.get_or_create(code="explorer", defaults={
         "name": "Истражувач", "description": "Прво документирано место", "kind": Badge.Kind.LEVEL,
-        "level": Badge.Level.EXPLORER, "icon": "🌱"})
+        "level": Badge.Level.EXPLORER, "icon": "🌱", "art": catalog.art_for_code("explorer"), "sort": 50})
     mk, _ = Badge.objects.get_or_create(code="macedonia-explorer", defaults={
         "name": "Истражувач на Македонија", "description": "100% во повеќе градови", "kind": Badge.Kind.LEVEL,
-        "level": Badge.Level.MACEDONIA_EXPLORER, "icon": "🇲🇰"})
+        "level": Badge.Level.MACEDONIA_EXPLORER, "icon": "🇲🇰", "art": catalog.art_for_code("macedonia-explorer"),
+        "sort": 99})
     return explorer, mk
 
 
@@ -202,6 +207,45 @@ def award_for_checkin(checkin):
         needed = max(1, min(settings.MACEDONIA_EXPLORER_MIN_CITIES, cities_with_list))
         if CityAchievement.objects.filter(user=user, percent__gte=100).count() >= needed and needed > 1:
             _grant(user, mk, checkin, unlocked)
+    award_rule_badges(user, checkin, unlocked)
+    return unlocked
+
+
+def rule_met(rule, stats):
+    """stats: places (сет „град/место“), cities (сет), categories (Counter по различни места), photos (int)."""
+    if not rule:
+        return False
+    if "city" in rule:
+        return rule["city"] in stats["cities"]
+    if "places" in rule:
+        return len(stats["places"] & set(rule["places"])) >= rule.get("min", 1)
+    if "categories" in rule:
+        return sum(stats["categories"][c] for c in rule["categories"]) >= rule.get("min", 1)
+    if "photos" in rule:
+        return stats["photos"] >= rule["photos"]
+    return False
+
+
+def user_stats(user):
+    from collections import Counter
+
+    approved = PhotoCheckIn.objects.filter(user=user, status=PhotoCheckIn.Status.APPROVED)
+    rows = set(approved.values_list("place_id", "place__city__slug", "place__slug", "place__category"))
+    return {
+        "places": {f"{c}/{s}" for _, c, s, _ in rows},
+        "cities": {c for _, c, _, _ in rows},
+        "categories": Counter(cat for _, _, _, cat in rows),
+        "photos": approved.count(),
+    }
+
+
+def award_rule_badges(user, checkin=None, unlocked=None):
+    """Беџови од каталогот (градови/предели и достигнувања) според правилата во Badge.rule."""
+    unlocked = [] if unlocked is None else unlocked
+    stats = user_stats(user)
+    for badge in Badge.objects.filter(kind__in=[Badge.Kind.REGION, Badge.Kind.CATEGORY], available=True):
+        if rule_met(badge.rule, stats):
+            _grant(user, badge, checkin, unlocked)
     return unlocked
 
 

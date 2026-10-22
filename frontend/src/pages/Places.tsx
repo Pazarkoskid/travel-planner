@@ -9,6 +9,7 @@ import MapView from "../components/MapView";
 import Icon from "../components/Icon";
 import WeatherCard from "../components/Weather";
 import PhotoImg from "../components/Photo";
+import LikeButton from "../components/LikeButton";
 import type { Badge, City, CityProgress, CheckIn, Photo, Place } from "../types";
 
 export function PlaceList() {
@@ -145,7 +146,10 @@ function PhotoCard({ photo, canReport }: { photo: Photo; canReport: boolean }) {
     <figure className="photo">
       <img src={photo.image} alt={photo.caption || t("Фотографија од {0}", { 0: photo.place_name })} loading="lazy" />
       <figcaption>
-        <Link to={`/u/${photo.photographer}`}>{photo.photographer}</Link>
+        <div className="photo-head">
+          <Link to={`/u/${photo.photographer}`}>{photo.photographer}</Link>
+          <LikeButton id={photo.id} count={photo.like_count ?? 0} liked={!!photo.liked_by_me} />
+        </div>
         <span className="muted small">{fmtDate(photo.taken_at || photo.created_at)}</span>
         {photo.caption && <div className="small">{photo.caption}</div>}
         {canReport && (

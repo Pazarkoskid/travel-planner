@@ -65,6 +65,7 @@ export default function Layout() {
               <>
                 <NavLink to="/trips" className={link}>{t("Патувања")}</NavLink>
                 <NavLink to="/reservations" className={link}>{t("Резервации")}</NavLink>
+                <NavLink to="/friends" className={link}>{t("Пријатели")}</NavLink>
                 {isBusiness && <NavLink to="/business" className={link}>{t("Бизнис")}</NavLink>}
                 {user.role === "ADMIN" && <NavLink to="/admin" className={link}>{t("Админ")}</NavLink>}
                 <NavLink to="/me" className="account" aria-label={t("Профил на {0}", { 0: user.username })}>
@@ -107,6 +108,7 @@ export default function Layout() {
                 <NavLink to="/reservations" className="sheet-link"><Icon name="ticket" />{t("Резервации")}</NavLink>
                 {isBusiness && <NavLink to="/business" className="sheet-link"><Icon name="briefcase" />{t("Бизнис-табла")}</NavLink>}
                 {user.role === "ADMIN" && <NavLink to="/admin" className="sheet-link"><Icon name="shield" />{t("Администрација")}</NavLink>}
+                <NavLink to="/friends" className="sheet-link"><Icon name="users" />{t("Пријатели")}</NavLink>
                 <NavLink to="/me" className="sheet-link"><Icon name="user" />{t("Профил и печати")}{unread > 0 && <span className="dot">{unread}</span>}</NavLink>
                 <button className="btn btn-ghost btn-block" onClick={() => { logout(); clearUserCache(); nav("/"); }}>{t("Одјави се")}</button>
               </>
@@ -151,6 +153,7 @@ export default function Layout() {
               <NavLink to="/trips/new">{t("Ново патување")}</NavLink>
               <NavLink to="/reservations">{t("Мои резервации")}</NavLink>
               <NavLink to="/me">{t("Мој пасош со печати")}</NavLink>
+              <NavLink to="/friends">{t("Пријатели")}</NavLink>
             </div>
             <div>
               <h3>{t("За проектот")}</h3>

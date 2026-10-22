@@ -16,6 +16,7 @@ import { MyProfile, PublicProfilePage } from "./pages/Profile";
 import AdminPanel from "./pages/Admin";
 import Credits from "./pages/Credits";
 import BadgesPage from "./pages/Badges";
+import FriendsPage from "./pages/Friends";
 import { AccommodationDetail, BoatTourDetail, RestaurantDetail, TaxiDetail } from "./pages/Listings";
 import { BusinessEditPage, NewBusinessPage } from "./pages/BusinessEdit";
 import "@fontsource/onest/400.css";
@@ -64,6 +65,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="trips/:id" element={<Protected><TripDetail /></Protected>} />
             <Route path="reservations" element={<Protected><MyReservations /></Protected>} />
             <Route path="me" element={<Protected><MyProfile /></Protected>} />
+            <Route path="friends" element={<Protected><FriendsPage /></Protected>} />
             <Route path="business" element={<Protected roles={["BUSINESS", "ADMIN"]}><BusinessDashboard /></Protected>} />
             <Route path="business/new" element={<Protected roles={["BUSINESS", "ADMIN"]}><NewBusinessPage /></Protected>} />
             <Route path="business/:id/edit" element={<Protected roles={["BUSINESS", "ADMIN"]}><BusinessEditPage /></Protected>} />

@@ -114,3 +114,15 @@ class PlaceReport(models.Model):
 
     class Meta:
         unique_together = ("photo", "reporter")
+
+
+class PhotoLike(models.Model):
+    """Лајк на фотографија од галеријата; еден корисник — еден лајк по фотографија."""
+
+    photo = models.ForeignKey(PlacePhoto, on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="photo_likes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [models.UniqueConstraint(fields=["photo", "user"], name="unique_photo_like")]

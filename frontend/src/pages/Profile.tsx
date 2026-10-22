@@ -5,7 +5,9 @@ import { api } from "../services/api";
 import { fmtDate, useAsync } from "../hooks";
 import { useAuth } from "../auth";
 import { Empty, ErrorBox, Field, Loading, Progress, Stamp, StatusPill } from "../components/ui";
-import type { Badge, CheckIn, CityProgress, Photo } from "../types";
+import type { Badge, CheckIn, CityProgress, Photo, Relation } from "../types";
+import FriendButton from "../components/FriendButton";
+import LikeButton from "../components/LikeButton";
 
 interface PublicProfile {
   username: string;
@@ -19,6 +21,9 @@ interface PublicProfile {
   visited_places: { id: number; name: string; city__name: string }[];
   favorite_places: { id: number; name: string; city__name: string }[];
   saved_trips: number | null;
+  relation: Relation | null;
+  request_id: number | null;
+  friend_count: number;
 }
 
 interface Notification {
@@ -67,7 +72,9 @@ export function PublicProfilePage() {
           <h1>{p.first_name || p.username} {p.last_name}</h1>
           <p className="muted" style={{ margin: 0 }}>@{p.username}</p>
           {p.bio && <p style={{ margin: "4px 0 0" }}>{p.bio}</p>}
+          <p className="small muted" style={{ margin: "4px 0 0" }}>{t("{0} пријатели", { 0: p.friend_count ?? 0 })}</p>
         </div>
+        {p.relation && <FriendButton username={p.username} relation={p.relation} requestId={p.request_id} />}
       </div>
       <section className="panel"><h2>{t("Печати")}</h2><BadgeGrid badges={p.badges} /></section>
       {p.city_progress.length > 0 && <section className="panel"><h2>{t("Истраженост по град")}</h2><CityProgressList items={p.city_progress} /></section>}
@@ -83,7 +90,12 @@ export function PublicProfilePage() {
           {p.photos.map((ph) => (
             <figure key={ph.id} className="photo">
               <img src={ph.image} alt={ph.caption || ph.place_name} loading="lazy" />
-              <figcaption><Link to={`/places/${ph.place}`}>{ph.place_name}</Link></figcaption>
+              <figcaption>
+                <div className="photo-head">
+                  <Link to={`/places/${ph.place}`}>{ph.place_name}</Link>
+                  <LikeButton id={ph.id} count={ph.like_count ?? 0} liked={!!ph.liked_by_me} />
+                </div>
+              </figcaption>
             </figure>
           ))}
         </div>
@@ -115,7 +127,7 @@ export function MyProfile() {
     <div className="stack">
       <div className="row between wrap">
         <h1>{t("Мој профил")}</h1>
-        <Link to={`/u/${user.username}`} className="btn btn-ghost btn-sm">{t("Јавен приказ")}</Link>
+        <div className="row gap"><Link to="/friends" className="btn btn-ghost btn-sm">{t("Пријатели")}</Link><Link to={`/u/${user.username}`} className="btn btn-ghost btn-sm">{t("Јавен приказ")}</Link></div>
       </div>
       <form className="panel stack" onSubmit={save}>
         <Field label={t("Кратка биографија")}><input value={bio} maxLength={500} onChange={(e) => { setBio(e.target.value); setSaved(false); }} /></Field>

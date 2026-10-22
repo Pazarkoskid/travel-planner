@@ -15,7 +15,8 @@ services:
       python manage.py secure_db &&
       python manage.py recompute_badges &&
       python manage.py seed_demo --if-empty &&
-      (python manage.py fetch_images || true)
+      (python manage.py fetch_images || true) &&
+      (python manage.py seed_community || true)
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
     healthCheckPath: /api/v1/cities/
     envVars:

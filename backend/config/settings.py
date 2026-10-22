@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "trips",
     "gamification",
     "notifications",
+    "social",
 ]
 
 MIDDLEWARE = [
@@ -197,6 +198,7 @@ REST_FRAMEWORK = {
         "login": os.environ.get("THROTTLE_LOGIN", "20/minute"),
         "ai_generate": os.environ.get("THROTTLE_AI", "30/hour"),
         "uploads": os.environ.get("THROTTLE_UPLOADS", "60/hour"),
+        "people_search": os.environ.get("THROTTLE_PEOPLE_SEARCH", "120/hour"),
     },
 }
 

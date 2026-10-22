@@ -10,6 +10,7 @@ urlpatterns = [
     path("users/<str:username>/", views.public_profile),
     path("photos/<int:pk>/", views.my_photo),
     path("photos/<int:pk>/report/", views.report_photo),
+    path("photos/<int:pk>/like/", views.like_photo),
     path("admin/checkins/", views.admin_pending_checkins),
     path("admin/checkins/<int:pk>/review/", views.admin_review_checkin),
     path("admin/place-reports/", views.admin_place_reports),

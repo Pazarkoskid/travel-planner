@@ -256,6 +256,21 @@ export interface Photo {
   photographer: string;
   taken_at: string | null;
   created_at: string;
+  like_count: number;
+  liked_by_me: boolean;
+}
+
+export type Relation = "none" | "friends" | "outgoing" | "incoming";
+
+export interface Person {
+  username: string;
+  name: string;
+  bio: string;
+  badges: number | null;
+  is_public: boolean;
+  relation: Relation;
+  request_id: number | null;
+  since?: string;
 }
 
 export interface CheckIn {

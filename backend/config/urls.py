@@ -12,6 +12,7 @@ api_patterns = [
     path("", include("trips.urls")),
     path("", include("gamification.urls")),
     path("", include("notifications.urls")),
+    path("", include("social.urls")),
     path("", include("core.urls")),
 ]
 

@@ -740,3 +740,29 @@ legend svg { vertical-align: -3px; color: var(--green); }
 .topbar-over .lang-switch button.on { background: #fff; color: var(--teal-dark); }
 .lang-mobile { display: none; }
 @media (max-width: 1100px) { .lang-mobile { display: inline-flex; margin-left: auto; margin-right: 0; } .menu-btn { margin-left: 4px; } }
+
+/* ================= Пријатели и лајкови ================= */
+.search-people { display: flex; align-items: center; gap: 10px; border: 1px solid var(--rule-2); border-radius: 999px; padding: 4px 6px 4px 16px; background: var(--paper); color: var(--green); }
+.search-people:focus-within { border-color: var(--lake); box-shadow: 0 0 0 3px rgba(8, 65, 92, 0.12); }
+.search-people input { border: 0; box-shadow: none !important; padding: 8px 4px; min-height: 40px; }
+.people { list-style: none; margin: 0; padding: 0; display: grid; }
+.person { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.person:last-child { border-bottom: 0; }
+.person-link { display: flex; align-items: center; gap: 12px; min-width: 0; color: inherit; text-decoration: none; }
+.person-link:hover strong { color: var(--green-2); }
+.person-avatar { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--lake); color: #fff; font-weight: 700; }
+.person-text { display: grid; min-width: 0; }
+.person-bio { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52ch; }
+.friend-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; flex: none; }
+.friend-on { color: var(--ok); border-color: #c4e3cf; }
+.profile-head .friend-actions { margin-left: auto; }
+.photo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.like { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--ink-3); padding: 4px 6px; border-radius: 999px; text-decoration: none; }
+.like:hover { color: #c0394b; background: #fbecee; }
+.like.on { color: #c0394b; }
+.like.on svg { fill: currentColor; }
+@media (max-width: 640px) {
+  .person { flex-direction: column; align-items: stretch; }
+  .friend-actions { justify-content: flex-start; }
+  .profile-head { flex-wrap: wrap; }
+}

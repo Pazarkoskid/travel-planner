@@ -1,4 +1,6 @@
-from django.db.models import Count
+from django.db.models import Q, Count
+
+from notifications.models import notify
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, serializers
@@ -58,11 +60,24 @@ class PhotoSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="checkin.status", read_only=True)
     place_name = serializers.CharField(source="place.name", read_only=True)
     photographer = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    liked_by_me = serializers.SerializerMethodField()
 
     class Meta:
         model = PlacePhoto
         fields = ("id", "place", "place_name", "image", "caption", "is_public", "photographer", "taken_at",
-                  "created_at", "status")
+                  "created_at", "status", "like_count", "liked_by_me")
+
+    def get_like_count(self, obj):
+        n = getattr(obj, "n_likes", None)
+        return n if n is not None else obj.likes.count()
+
+    def get_liked_by_me(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        mine = getattr(obj, "mine", None)
+        return bool(mine) if mine is not None else obj.likes.filter(user=request.user).exists()
 
     def get_photographer(self, obj):
         return obj.user.username if obj.user.is_profile_public else "Турист"
@@ -117,11 +132,38 @@ def place_gallery(request, pk):
     photos = (PlacePhoto.objects.filter(place=place, is_public=True, is_hidden=False,
                                         checkin__status=PhotoCheckIn.Status.APPROVED)
               .select_related("user", "checkin", "place"))
+    photos = _with_likes(photos, request).order_by("-n_likes", "-created_at")
     holders = UserBadge.objects.filter(badge__place=place).count()
     return Response({
         "place_id": place.id, "badge_holders": holders,
         "photos": PhotoSerializer(photos, many=True, context={"request": request}).data,
     })
+
+
+def _with_likes(qs, request):
+    qs = qs.annotate(n_likes=Count("likes", distinct=True))
+    if request.user.is_authenticated:
+        qs = qs.annotate(mine=Count("likes", filter=Q(likes__user=request.user), distinct=True))
+    return qs
+
+
+@api_view(["POST", "DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def like_photo(request, pk):
+    """POST = лајк, DELETE = отстрани лајк. Само јавни, одобрени и нескриени фотографии."""
+    from .models import PhotoLike
+
+    photo = get_object_or_404(PlacePhoto.objects.select_related("user", "place"), pk=pk, is_public=True,
+                              is_hidden=False, checkin__status=PhotoCheckIn.Status.APPROVED)
+    if request.method == "POST":
+        _, created = PhotoLike.objects.get_or_create(photo=photo, user=request.user)
+        if created and photo.user_id != request.user.id:
+            notify(photo.user, "photo_like", f"{request.user.username} ја лајкна вашата фотографија",
+                   photo.place.name, photo)
+    else:
+        PhotoLike.objects.filter(photo=photo, user=request.user).delete()
+    return Response({"id": photo.id, "like_count": photo.likes.count(),
+                     "liked_by_me": request.method == "POST"})
 
 
 @api_view(["GET"])
@@ -160,8 +202,12 @@ def my_gamification(request):
 @permission_classes([permissions.AllowAny])
 def public_profile(request, username):
     u = get_object_or_404(User, username=username)
+    from social.models import Friendship
+    from social.views import person
+
     is_self = request.user.is_authenticated and request.user.id == u.id
-    if not u.is_profile_public and not is_self:
+    is_friend = Friendship.are_friends(request.user, u)
+    if not u.is_profile_public and not is_self and not is_friend:
         raise ServiceError("Профилот е приватен.", code="private_profile", status_code=403)
     photos = PlacePhoto.objects.filter(user=u, is_hidden=False, checkin__status=PhotoCheckIn.Status.APPROVED)
     if not is_self:
@@ -175,11 +221,15 @@ def public_profile(request, username):
         "badges": UserBadgeSerializer(history, many=True, context={"request": request}).data,
         "city_progress": AchievementSerializer(CityAchievement.objects.filter(user=u).select_related("city"),
                                                many=True).data,
-        "photos": PhotoSerializer(photos.select_related("place", "checkin", "user")[:60], many=True,
+        "photos": PhotoSerializer(_with_likes(photos.select_related("place", "checkin", "user"), request)[:60], many=True,
                                   context={"request": request}).data,
         "visited_places": list(visited),
         "favorite_places": list(u.favorite_places.values("id", "name", "city__name")),
         "saved_trips": u.trips.count() if is_self else None,
+        "relation": person(request.user, u)["relation"] if request.user.is_authenticated and not is_self else None,
+        "request_id": person(request.user, u)["request_id"] if request.user.is_authenticated and not is_self else None,
+        "friend_count": Friendship.objects.filter(status=Friendship.Status.ACCEPTED).filter(
+            Q(from_user=u) | Q(to_user=u)).count(),
     })
 
 

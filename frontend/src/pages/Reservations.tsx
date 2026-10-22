@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, useState } from "react";
 import { api } from "../services/api";
 import { eur, fmtDate, fmtDateTime, useAsync } from "../hooks";
@@ -5,14 +6,14 @@ import { Empty, ErrorBox, Field, Loading, Meta, StatusPill } from "../components
 import type { Reservation } from "../types";
 
 const DIMENSIONS: Record<string, [string, string][]> = {
-  ACCOMMODATION: [["cleanliness", "Чистота"], ["location", "Локација"], ["comfort", "Удобност"], ["value", "Вредност за парите"], ["communication", "Комуникација"]],
-  RESTAURANT: [["food", "Храна"], ["service", "Услуга"], ["atmosphere", "Атмосфера"], ["value", "Вредност за парите"]],
-  BOAT_TOUR: [["safety", "Безбедност"], ["punctuality", "Точност"], ["service", "Услуга"], ["communication", "Комуникација"], ["overall", "Целокупно"]],
-  TAXI: [["punctuality", "Точност"], ["safety", "Безбедност"], ["service", "Услуга"], ["communication", "Комуникација"], ["overall", "Целокупно"]],
+  ACCOMMODATION: [["cleanliness", t("Чистота")], ["location", t("Локација")], ["comfort", t("Удобност")], ["value", t("Вредност за парите")], ["communication", t("Комуникација")]],
+  RESTAURANT: [["food", t("Храна")], ["service", t("Услуга")], ["atmosphere", t("Атмосфера")], ["value", t("Вредност за парите")]],
+  BOAT_TOUR: [["safety", t("Безбедност")], ["punctuality", t("Точност")], ["service", t("Услуга")], ["communication", t("Комуникација")], ["overall", t("Целокупно")]],
+  TAXI: [["punctuality", t("Точност")], ["safety", t("Безбедност")], ["service", t("Услуга")], ["communication", t("Комуникација")], ["overall", t("Целокупно")]],
 };
 
 export function when(r: Reservation) {
-  if (r.check_in) return `${fmtDate(r.check_in)} до ${fmtDate(r.check_out)}`;
+  if (r.check_in) return t("{0} до {1}", { 0: fmtDate(r.check_in), 1: fmtDate(r.check_out) });
   if (r.departure_at) return fmtDateTime(r.departure_at);
   return fmtDateTime(r.reserved_for);
 }
@@ -28,7 +29,7 @@ export default function MyReservations() {
       await api(path, { method: "POST", json: {} });
       reload();
     } catch (e) {
-      setActionErr(e instanceof Error ? e.message : "Грешка");
+      setActionErr(e instanceof Error ? e.message : t("Грешка"));
     }
   };
 
@@ -36,43 +37,43 @@ export default function MyReservations() {
     <div className="stack">
       <div className="page-head" style={{ marginBottom: 0 }}>
         <div>
-          <h1>Мои резервации</h1>
-          <p>По завршена услуга можете да оставите проверена рецензија.</p>
+          <h1>{t("Мои резервации")}</h1>
+          <p>{t("По завршена услуга можете да оставите проверена рецензија.")}</p>
         </div>
       </div>
       {actionErr && <ErrorBox message={actionErr} />}
       {loading && <Loading />}
       {error && <ErrorBox message={error} onRetry={reload} />}
-      {data?.length === 0 && <Empty title="Немате резервации.">Резервирајте сместување или бродска тура од менито горе.</Empty>}
+      {data?.length === 0 && <Empty title={t("Немате резервации.")}>{t("Резервирајте сместување или бродска тура од менито горе.")}</Empty>}
       {data?.map((r) => (
         <article key={r.id} className={`panel panel-tight reservation s-${r.status}`}>
           <div className="stack" style={{ gap: 12 }}>
           <div className="row between wrap">
             <div>
               <h3 style={{ margin: 0 }}>{r.business_name}</h3>
-              <Meta items={[`#${r.id}`, r.service_label, r.unit_name, when(r), `${r.guests} лица`]} />
+              <Meta items={[`#${r.id}`, t(r.service_label), r.unit_name, when(r), t("{0} лица", { 0: r.guests })]} />
             </div>
-            <StatusPill status={r.status} label={r.status_label} />
+            <StatusPill status={r.status} label={t(r.status_label)} />
           </div>
-          {r.total_price && <div className="small">Вкупно, по цената во моментот на барањето: <strong>{eur(r.total_price)}</strong></div>}
-          {r.business_message && <div className="small">Порака од бизнисот: {r.business_message}</div>}
+          {r.total_price && <div className="small">{t("Вкупно, по цената во моментот на барањето:")} <strong>{eur(r.total_price)}</strong></div>}
+          {r.business_message && <div className="small">{t("Порака од бизнисот:")} {r.business_message}</div>}
           {r.status === "ALTERNATIVE_PROPOSED" && (
-            <div className="alert alert-warn">Предложен нов термин: <strong>{fmtDateTime(r.proposed_datetime)}</strong></div>
+            <div className="alert alert-warn">{t("Предложен нов термин:")} <strong>{fmtDateTime(r.proposed_datetime)}</strong></div>
           )}
-          {r.status === "QUOTED" && <div className="alert alert-warn">Понуда за превоз: <strong>{eur(r.quoted_price)}</strong></div>}
+          {r.status === "QUOTED" && <div className="alert alert-warn">{t("Понуда за превоз:")} <strong>{eur(r.quoted_price)}</strong></div>}
           <div className="row gap wrap">
             {["ALTERNATIVE_PROPOSED", "QUOTED"].includes(r.status) && (
-              <button className="btn btn-primary btn-sm" onClick={() => act(`/reservations/${r.id}/accept/`)}>Прифати</button>
+              <button className="btn btn-primary btn-sm" onClick={() => act(`/reservations/${r.id}/accept/`)}>{t("Прифати")}</button>
             )}
             {["PENDING", "ALTERNATIVE_PROPOSED", "QUOTED", "CONFIRMED"].includes(r.status) && (
-              <button className="btn btn-ghost btn-sm" onClick={() => window.confirm("Да се откаже резервацијата?") && act(`/reservations/${r.id}/cancel/`)}>Откажи</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => window.confirm(t("Да се откаже резервацијата?")) && act(`/reservations/${r.id}/cancel/`)}>{t("Откажи")}</button>
             )}
-            {r.can_review && <button className="btn btn-primary btn-sm" onClick={() => setReviewFor(r.id)}>Остави рецензија</button>}
-            {r.has_review && <span className="pill pill-ok">Рецензијата е објавена</span>}
+            {r.can_review && <button className="btn btn-primary btn-sm" onClick={() => setReviewFor(r.id)}>{t("Остави рецензија")}</button>}
+            {r.has_review && <span className="pill pill-ok">{t("Рецензијата е објавена")}</span>}
           </div>
           {reviewFor === r.id && <ReviewForm reservation={r} onDone={() => { setReviewFor(null); reload(); }} />}
           <details className="small">
-            <summary>Историја на статуси</summary>
+            <summary>{t("Историја на статуси")}</summary>
             <ul>{r.history.map((h, i) => <li key={i}>{fmtDateTime(h.created_at)}: {h.to_status}{h.note && `, ${h.note}`}</li>)}</ul>
           </details>
           </div>
@@ -95,14 +96,14 @@ function ReviewForm({ reservation, onDone }: { reservation: Reservation; onDone:
       await api(`/reservations/${reservation.id}/review/`, { method: "POST", json: { rating, dimension_scores: scores, comment } });
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Грешка");
+      setError(err instanceof Error ? err.message : t("Грешка"));
     }
   };
 
   return (
     <form className="subcard stack" onSubmit={submit}>
       {error && <ErrorBox message={error} />}
-      <Field label="Вкупна оценка">
+      <Field label={t("Вкупна оценка")}>
         <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
           {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{"★".repeat(n)} ({n})</option>)}
         </select>
@@ -117,8 +118,8 @@ function ReviewForm({ reservation, onDone }: { reservation: Reservation; onDone:
           </Field>
         ))}
       </div>
-      <Field label="Коментар"><textarea rows={3} maxLength={3000} value={comment} onChange={(e) => setComment(e.target.value)} /></Field>
-      <button className="btn btn-primary btn-sm">Објави</button>
+      <Field label={t("Коментар")}><textarea rows={3} maxLength={3000} value={comment} onChange={(e) => setComment(e.target.value)} /></Field>
+      <button className="btn btn-primary btn-sm">{t("Објави")}</button>
     </form>
   );
 }

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import React, { ReactNode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -24,6 +25,9 @@ import "@fontsource/onest/700.css";
 import "@fontsource/marck-script/cyrillic-400.css";
 import "@fontsource/marck-script/latin-400.css";
 import "./styles.css";
+import { registerServiceWorker } from "./pwa";
+
+registerServiceWorker();
 
 function Protected({ children, roles }: { children: ReactNode; roles?: string[] }) {
   const { user, loading } = useAuth();
@@ -64,7 +68,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="business/new" element={<Protected roles={["BUSINESS", "ADMIN"]}><NewBusinessPage /></Protected>} />
             <Route path="business/:id/edit" element={<Protected roles={["BUSINESS", "ADMIN"]}><BusinessEditPage /></Protected>} />
             <Route path="admin" element={<Protected roles={["ADMIN"]}><AdminPanel /></Protected>} />
-            <Route path="*" element={<p>Страницата не постои.</p>} />
+            <Route path="*" element={<p>{t("Страницата не постои.")}</p>} />
           </Route>
         </Routes>
       </BrowserRouter>

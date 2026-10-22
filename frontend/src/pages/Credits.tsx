@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Link } from "react-router-dom";
 import { api, unwrap } from "../services/api";
 import { useAsync } from "../hooks";
@@ -17,14 +18,14 @@ export default function Credits() {
     <div className="stack-lg">
       <div className="page-head">
         <div>
-          <h1>Извори на фотографии</h1>
-          <p>Фотографиите се од Wikimedia Commons, под слободни лиценци. За секоја е наведен авторот и лиценцата.</p>
+          <h1>{t("Извори на фотографии")}</h1>
+          <p>{t("Фотографиите се од Wikimedia Commons, под слободни лиценци. За секоја е наведен авторот и лиценцата.")}</p>
         </div>
       </div>
       {(cities.loading || places.loading) && <Loading />}
       {!cities.loading && !places.loading && rows.length === 0 && (
-        <Empty title="Сè уште нема преземени фотографии.">
-          Администраторот ги презема со командата <code>python manage.py fetch_images</code>.
+        <Empty title={t("Сè уште нема преземени фотографии.")}>
+          {t("Администраторот ги презема со командата")} <code>python manage.py fetch_images</code>.
         </Empty>
       )}
       {rows.length > 0 && (
@@ -33,7 +34,7 @@ export default function Credits() {
             <li key={r.key} className="credit-row">
               <Link to={r.to}><strong>{r.name}</strong></Link>
               <span className="small muted">{r.credit}</span>
-              <a className="small" href={r.url} target="_blank" rel="noreferrer">Оригинал</a>
+              <a className="small" href={r.url} target="_blank" rel="noreferrer">{t("Оригинал")}</a>
             </li>
           ))}
         </ul>

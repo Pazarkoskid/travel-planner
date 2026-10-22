@@ -705,3 +705,38 @@ a.promo-card:hover { color: #fff; transform: rotate(-4deg) translateY(-2px); }
   .stamps-art { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
   .badge-art { width: 104px; height: 104px; }
 }
+
+/* ================= PWA ================= */
+.pwa-bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 8px 16px; font-size: 0.88rem; font-weight: 500; text-align: center; }
+.pwa-offline { background: #fdf3df; color: #5e4300; border-bottom: 1px solid #ecdcb0; }
+.pwa-update { background: var(--teal-dark); color: #fff; }
+.pwa-install { position: fixed; left: 12px; right: 12px; bottom: calc(var(--tabbar-h) + 12px + env(safe-area-inset-bottom)); z-index: 1001; display: none; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--shadow-2); animation: sheet-in 0.25s ease-out; }
+.pwa-install img { border-radius: 12px; flex: none; }
+.pwa-install-text { display: grid; gap: 2px; flex: 1; min-width: 0; font-size: 0.82rem; color: var(--ink-2); }
+.pwa-install-text strong { color: var(--teal-dark); font-size: 0.92rem; }
+.pwa-install .icon-btn { width: 36px; height: 36px; flex: none; color: var(--ink-3); }
+button.sheet-link { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--rule); font: inherit; font-weight: 500; font-size: 1.02rem; cursor: pointer; text-align: left; }
+@media (max-width: 760px) { .pwa-install { display: flex; } }
+@media (display-mode: standalone) { .topbar { padding-top: env(safe-area-inset-top); height: calc(var(--topbar-h) + env(safe-area-inset-top)); } }
+
+/* ================= Пристапност ================= */
+.access { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 10px 2px 8px; font-size: 0.78rem; font-weight: 600; width: fit-content; line-height: 1.6; }
+.access-yes { background: #e1f1e7; color: var(--ok); }
+.access-limited { background: var(--gold-wash); color: var(--warn); }
+.access-no { background: #f9e3e0; color: var(--bad); }
+.access-unknown { background: #e8eded; color: var(--ink-2); }
+.place-access { grid-column: 2 / -1; }
+.access-filter { min-height: 40px; padding: 0 12px; border: 1px solid var(--rule-2); border-radius: 999px; background: var(--paper); font-weight: 500; }
+.access-filter svg { color: var(--green); }
+legend svg { vertical-align: -3px; color: var(--green); }
+.stop-body .access { margin: 0 0 6px; }
+
+/* ================= Јазик ================= */
+.lang-switch { display: inline-flex; border: 1px solid var(--rule-2); border-radius: 999px; padding: 2px; margin-right: 6px; background: var(--paper); }
+.lang-switch button { border: 0; background: transparent; font: inherit; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-2); padding: 4px 9px; border-radius: 999px; cursor: pointer; min-height: 28px; }
+.lang-switch button.on { background: var(--teal-dark); color: #fff; }
+.topbar-over .lang-switch { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.35); }
+.topbar-over .lang-switch button { color: rgba(255, 255, 255, 0.85); }
+.topbar-over .lang-switch button.on { background: #fff; color: var(--teal-dark); }
+.lang-mobile { display: none; }
+@media (max-width: 1100px) { .lang-mobile { display: inline-flex; margin-left: auto; margin-right: 0; } .menu-btn { margin-left: 4px; } }

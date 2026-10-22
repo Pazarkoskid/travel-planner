@@ -4,21 +4,45 @@ from rest_framework import serializers
 
 from destinations.models import Place
 
+from core.i18n import get_lang, tr
+
 from .models import AIPlanRun, ItineraryDay, ItineraryItem, Trip
 from .planner import INTEREST_CATEGORIES
 
 
-class ItemSerializer(serializers.ModelSerializer):
+class LangMixin:
+    """Ги преведува генерираните текстови според Accept-Language (en/mk)."""
+
+    translated_fields = ()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        lang = get_lang(self.context.get("request"))
+        if lang == "en":
+            for f in self.translated_fields:
+                v = data.get(f)
+                if isinstance(v, list):
+                    data[f] = [tr(x, lang) for x in v]
+                elif isinstance(v, str):
+                    data[f] = tr(v, lang)
+        return data
+
+
+class ItemSerializer(LangMixin, serializers.ModelSerializer):
+    translated_fields = ("title", "reason", "warning", "accessibility_notes")
+
     lat = serializers.SerializerMethodField()
     lng = serializers.SerializerMethodField()
     category = serializers.CharField(source="place.category", read_only=True, default=None)
     image_url = serializers.CharField(source="place.image_url", read_only=True, default="")
+    wheelchair = serializers.CharField(source="place.wheelchair", read_only=True, default=None)
+    accessibility_notes = serializers.CharField(source="place.accessibility_notes", read_only=True, default="")
 
     class Meta:
         model = ItineraryItem
         fields = ("id", "source_type", "place", "business", "title", "start_time", "end_time", "order_index",
                   "travel_minutes_from_prev", "distance_km_from_prev", "est_cost", "reason", "warning",
-                  "lat", "lng", "category", "image_url")
+                  "lat", "lng", "category", "image_url", "wheelchair", "accessibility_notes")
 
     def get_lat(self, obj):
         src = obj.place or obj.business
@@ -29,7 +53,9 @@ class ItemSerializer(serializers.ModelSerializer):
         return src.lng if src else None
 
 
-class DaySerializer(serializers.ModelSerializer):
+class DaySerializer(LangMixin, serializers.ModelSerializer):
+    translated_fields = ("notes",)
+
     items = ItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -44,14 +70,16 @@ class RunSerializer(serializers.ModelSerializer):
                   "validation_result", "metrics", "instructions", "duration_ms", "created_at")
 
 
-class TripSerializer(serializers.ModelSerializer):
+class TripSerializer(LangMixin, serializers.ModelSerializer):
+    translated_fields = ("warnings", "title")
+
     city_name = serializers.CharField(source="city.name", read_only=True)
     must_visit = serializers.PrimaryKeyRelatedField(many=True, queryset=Place.objects.all(), required=False)
 
     class Meta:
         model = Trip
         fields = ("id", "city", "city_name", "title", "start_date", "days", "guests", "budget", "interests",
-                  "pace", "transport", "must_visit", "accommodation", "modifiers", "warnings", "status",
+                  "pace", "transport", "mobility", "must_visit", "accommodation", "modifiers", "warnings", "status",
                   "created_at", "updated_at")
         read_only_fields = ("modifiers", "warnings", "status")
 

@@ -1,6 +1,8 @@
 // Тенок API клиент. JWT токените се чуваат во localStorage (доволно за MVP;
 // за продукција — httpOnly cookie преку backend).
 // Локално: празно (Vite proxy). На Render: VITE_API_URL=https://<backend>.onrender.com
+import { lang, t } from "../i18n";
+
 const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 const BASE = `${API_ORIGIN}/api/v1`;
 const ACCESS = "tpm_access";
@@ -66,7 +68,7 @@ function flattenDetails(details: unknown): string {
 }
 
 export async function api<T = unknown>(path: string, opts: RequestInit & { json?: unknown } = {}, retry = true): Promise<T> {
-  const headers: Record<string, string> = { ...(opts.headers as Record<string, string>) };
+  const headers: Record<string, string> = { "Accept-Language": lang, ...(opts.headers as Record<string, string>) };
   const token = tokens.get();
   if (token) headers.Authorization = `Bearer ${token}`;
   let body = opts.body;
@@ -87,7 +89,8 @@ export async function api<T = unknown>(path: string, opts: RequestInit & { json?
   if (!res.ok) {
     const err = (data as { error?: { code: string; message: string; details: unknown } })?.error;
     const detail = flattenDetails(err?.details);
-    throw new ApiError(res.status, err?.code || "error", [err?.message, detail].filter(Boolean).join(" ") || `Грешка ${res.status}`, err?.details);
+    const message = err?.message ? t(err.message) : "";
+    throw new ApiError(res.status, err?.code || "error", [message, detail].filter(Boolean).join(" ") || t("Грешка {n}", { n: res.status }), err?.details);
   }
   return data as T;
 }
@@ -95,8 +98,8 @@ export async function api<T = unknown>(path: string, opts: RequestInit & { json?
 export const unwrap = <T,>(data: T[] | { results: T[] }): T[] => (Array.isArray(data) ? data : data.results);
 
 export async function download(path: string, filename: string) {
-  const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${tokens.get()}` } });
-  if (!res.ok) throw new ApiError(res.status, "download", "Извозот не успеа.", null);
+  const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${tokens.get()}`, "Accept-Language": lang } });
+  if (!res.ok) throw new ApiError(res.status, "download", t("Извозот не успеа."), null);
   const url = URL.createObjectURL(await res.blob());
   const a = document.createElement("a");
   a.href = url;

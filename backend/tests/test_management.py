@@ -111,7 +111,7 @@ def test_public_detail_pages(owner, city, departure):
 
 # --- Временска прогноза -------------------------------------------------------
 
-def fake_ow(path, lat, lng):
+def fake_ow(path, lat, lng, lang="mk"):
     if path == "weather":
         return {"main": {"temp": 21.4, "feels_like": 20.8, "humidity": 55}, "wind": {"speed": 3},
                 "weather": [{"icon": "01d", "description": "ведро"}]}

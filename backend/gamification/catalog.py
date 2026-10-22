@@ -128,6 +128,38 @@ PLACE_STAMPS = {
 }
 
 
+# Англиски имиња/описи (за англискиот интерфејс)
+GROUPS_EN = {"city": "City", "water": "Lakes & water", "nature": "Nature", "heritage": "Heritage"}
+LOCATION_NAMES_EN = {
+    1: "Skopje", 2: "Ohrid", 3: "Bitola", 4: "Struga", 5: "Kruševo", 6: "Prilep", 7: "Tetovo", 8: "Štip", 9: "Veles",
+    10: "Gevgelija", 11: "Kičevo", 12: "Kavadarci", 13: "Strumica", 14: "Kočani", 15: "Demir Kapija", 16: "Globočica",
+    17: "Lake Ohrid", 18: "Lake Prespa", 19: "Lake Mladost", 20: "Šar Mountain", 21: "Lake Mavrovo", 22: "Bregalnica",
+    23: "Lake Dojran", 24: "Kalište", 25: "Matka Canyon", 26: "Vranski Springs", 27: "Šar Mountain Flora", 28: "Jakupica",
+    29: "Saint Naum", 30: "Samuel's Fortress", 31: "Cave", 32: "Galičnik", 33: "Kratovo", 34: "Pirin Springs",
+    35: "Crno Drvo", 36: "Pelister", 37: "Belčište Springs", 38: "Crna River", 39: "Debar Hajduk", 40: "St. Prohor Pčinjski",
+}
+ACHIEVEMENTS_EN = {
+    "nature-explorer": ("Nature Explorer", "3 nature places or viewpoints"),
+    "history-buff": ("History Buff", "3 historic places"),
+    "culture-explorer": ("Culture Explorer", "3 museums, churches or cultural places"),
+    "mountain-hiker": ("Mountain Hiker", "2 mountain viewpoints"),
+    "lake-explorer": ("Lakeshore", "3 places along Lake Ohrid"),
+    "photographer": ("Photographer", "10 approved photo check-ins"),
+    "wine-traveler": ("Wine Traveller", "Tikveš wineries — coming soon"),
+}
+
+
+def badge_text_en():
+    """Мапа македонски → англиски за имиња и описи на беџовите од каталогот."""
+    out = {}
+    for num, _slug, name, group, _rule in LOCATIONS:
+        out[name] = LOCATION_NAMES_EN[num]
+        out[f"{GROUPS[group][0]} — колекција „Македонија“"] = f"{GROUPS_EN[group]} — “Macedonia” collection"
+    for code, name, desc, *_ in ACHIEVEMENTS:
+        out[name], out[desc] = ACHIEVEMENTS_EN[code]
+    return out
+
+
 def stamp_art(key):
     return "stamp-" + key.replace("/", "-")
 

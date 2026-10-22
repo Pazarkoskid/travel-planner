@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
@@ -9,9 +10,9 @@ import type { Badge } from "../types";
 type Filter = "all" | "earned" | "open";
 
 const FILTERS: [Filter, string][] = [
-  ["all", "Сите"],
-  ["earned", "Освоени"],
-  ["open", "Неосвоени"],
+  ["all", t("Сите")],
+  ["earned", t("Освоени")],
+  ["open", t("Неосвоени")],
 ];
 
 function Section({ title, hint, badges, earned, filter }: {
@@ -26,9 +27,9 @@ function Section({ title, hint, badges, earned, filter }: {
           <h2 style={{ margin: 0 }}>{title}</h2>
           <p className="muted small" style={{ margin: 0 }}>{hint}</p>
         </div>
-        <span className="pill pill-info">{got} од {badges.length}</span>
+        <span className="pill pill-info">{got} {t("од")} {badges.length}</span>
       </div>
-      {shown.length === 0 ? <p className="muted">Нема беџови за овој филтер.</p> : (
+      {shown.length === 0 ? <p className="muted">{t("Нема беџови за овој филтер.")}</p> : (
         <div className="stamps stamps-art">
           {shown.map((b) => <Stamp key={b.code} badge={b} date={earned.get(b.code)} locked={!earned.has(b.code)} />)}
         </div>
@@ -67,43 +68,42 @@ export default function BadgesPage() {
     <div className="stack-lg">
       <header className="badges-hero">
         <div>
-          <p className="kicker">Колекција „Македонија“</p>
-          <h1>Беџови и печати</h1>
+          <p className="kicker">{t("Колекција „Македонија“")}</p>
+          <h1>{t("Беџови и печати")}</h1>
           <p className="muted">
-            Документирајте ја посетата со фотографија на лице место и беџот се отклучува автоматски.
-            Беџовите означени со „Наскоро“ ќе се отворат кога местата ќе влезат во проверениот каталог.
+            {t("Документирајте ја посетата со фотографија на лице место и беџот се отклучува автоматски. Беџовите означени со „Наскоро“ ќе се отворат кога местата ќе влезат во проверениот каталог.")}
           </p>
         </div>
         <div className="badges-score">
           {user ? (
             <>
-              <strong>{got} <span>од {collectable.length}</span></strong>
-              <span className="small">освоени беџови</span>
-              <Progress value={percent} label="Колекција" />
+              <strong>{got} <span>{t("од")} {collectable.length}</span></strong>
+              <span className="small">{t("освоени беџови")}</span>
+              <Progress value={percent} label={t("Колекција")} />
             </>
           ) : (
             <>
-              <strong className="small-strong">Вашата колекција</strong>
-              <span className="small">Најавете се за да ги видите освоените беџови.</span>
-              <Link to="/login" className="btn btn-green btn-sm">Најава</Link>
+              <strong className="small-strong">{t("Вашата колекција")}</strong>
+              <span className="small">{t("Најавете се за да ги видите освоените беџови.")}</span>
+              <Link to="/login" className="btn btn-green btn-sm">{t("Најава")}</Link>
             </>
           )}
         </div>
       </header>
 
       {user && (
-        <div className="chips" role="group" aria-label="Филтер">
+        <div className="chips" role="group" aria-label={t("Филтер")}>
           {FILTERS.map(([k, label]) => (
             <button key={k} type="button" className={filter === k ? "chip on" : "chip"} onClick={() => setFilter(k)}>{label}</button>
           ))}
         </div>
       )}
 
-      <Section title="Достигнувања" hint="Нивоа, теми и „Град 100%“." badges={groups.achievements} earned={earned} filter={filter} />
-      <Section title="Градови и предели" hint="40 локации низ Македонија, нумерирани како во албум." badges={groups.regions}
+      <Section title={t("Достигнувања")} hint={t("Нивоа, теми и „Град 100%“.")} badges={groups.achievements} earned={earned} filter={filter} />
+      <Section title={t("Градови и предели")} hint={t("40 локации низ Македонија, нумерирани како во албум.")} badges={groups.regions}
                earned={earned} filter={filter} />
       {groups.places.length > 0 && (
-        <Section title="Печати за знаменитости" hint="Печат во пасошот за секоја документирана знаменитост." badges={groups.places}
+        <Section title={t("Печати за знаменитости")} hint={t("Печат во пасошот за секоја документирана знаменитост.")} badges={groups.places}
                  earned={earned} filter={filter} />
       )}
     </div>

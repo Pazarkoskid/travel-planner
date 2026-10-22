@@ -11,6 +11,7 @@ pytest-django>=4.8
 ortools>=9.10; python_version < "3.14"
 psycopg[binary]>=3.2; python_version < "3.14"
 gunicorn>=22.0; sys_platform != "win32"
+reportlab>=4.2
 # Продукција (Render + Supabase)
 dj-database-url>=2.2
 whitenoise>=6.7

@@ -14,6 +14,11 @@ class Trip(models.Model):
         PUBLIC = "public", "Јавен превоз/такси"
         BICYCLE = "bicycle", "Велосипед"
 
+    class Mobility(models.TextChoices):
+        STANDARD = "standard", "Без посебни потреби"
+        REDUCED = "reduced", "Намалена подвижност (без стрмни скали)"
+        WHEELCHAIR = "wheelchair", "Инвалидска количка"
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="trips")
     city = models.ForeignKey("destinations.City", on_delete=models.PROTECT)
     title = models.CharField(max_length=200, blank=True)
@@ -24,6 +29,7 @@ class Trip(models.Model):
     interests = models.JSONField(default=list)
     pace = models.CharField(max_length=10, choices=Pace.choices, default=Pace.BALANCED)
     transport = models.CharField(max_length=10, choices=Transport.choices, default=Transport.CAR)
+    mobility = models.CharField(max_length=10, choices=Mobility.choices, default=Mobility.STANDARD)
     must_visit = models.ManyToManyField("destinations.Place", blank=True, related_name="+")
     accommodation = models.ForeignKey("businesses.Accommodation", null=True, blank=True, on_delete=models.SET_NULL)
     modifiers = models.JSONField(default=dict, blank=True, help_text="Измени од „ревизија“ (поевтино, побавно…)")

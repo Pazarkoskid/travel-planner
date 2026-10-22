@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
@@ -8,7 +9,7 @@ import Photo from "../components/Photo";
 import type { AccommodationResult, BoatTour, Business, City, Review } from "../types";
 
 const AMENITIES: [string, string][] = [
-  ["wifi", "Wi-Fi"], ["ac", "Клима"], ["parking", "Паркинг"], ["kitchen", "Кујна"], ["terrace", "Тераса"], ["lake_view", "Поглед на езеро"],
+  ["wifi", "Wi-Fi"], ["ac", t("Клима")], ["parking", t("Паркинг")], ["kitchen", t("Кујна")], ["terrace", t("Тераса")], ["lake_view", t("Поглед на езеро")],
 ];
 
 const addDays = (iso: string, n: number) => {
@@ -51,10 +52,10 @@ export function Accommodations() {
         json: { unit_id: r.quote.unit_id, check_in: q.check_in, check_out: q.check_out, guests: Number(q.guests),
                 idempotency_key: crypto.randomUUID() },
       });
-      setBooked(`Барањето #${res.id} е испратено до „${r.business.name}“. Статус: чека одговор.`);
+      setBooked(t("Барањето #{0} е испратено до „{1}“. Статус: чека одговор.", { 0: res.id, 1: r.business.name }));
       setSearch((s) => s + 1);
     } catch (e) {
-      setBookError(e instanceof Error ? e.message : "Грешка");
+      setBookError(e instanceof Error ? e.message : t("Грешка"));
     }
   };
 
@@ -62,22 +63,22 @@ export function Accommodations() {
     <div className="stack">
       <div className="page-head" style={{ marginBottom: 0 }}>
         <div>
-          <h1>Сместување</h1>
-          <p>Цената е пресметана за секоја ноќ од престојот, со сите познати трошоци.</p>
+          <h1>{t("Сместување")}</h1>
+          <p>{t("Цената е пресметана за секоја ноќ од престојот, со сите познати трошоци.")}</p>
         </div>
       </div>
       <form className="panel stack" onSubmit={(e: FormEvent) => { e.preventDefault(); setSearch((s) => s + 1); }}>
         <div className="grid grid-5">
-          <Field label="Град">
+          <Field label={t("Град")}>
             <select value={q.city} onChange={set("city")}>
               {cities?.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
-              {cities && !cities.some((c) => c.slug === q.city) && <option value={q.city}>избран град</option>}
+              {cities && !cities.some((c) => c.slug === q.city) && <option value={q.city}>{t("избран град")}</option>}
             </select>
           </Field>
           <Field label="Check-in"><input type="date" min={isoDate(0)} value={q.check_in} onChange={set("check_in")} /></Field>
           <Field label="Check-out"><input type="date" min={q.check_in} value={q.check_out} onChange={set("check_out")} /></Field>
-          <Field label="Гости"><input type="number" min={1} value={q.guests} onChange={set("guests")} /></Field>
-          <Field label="Макс. вкупно (EUR)"><input type="number" min={0} value={q.max_total} onChange={set("max_total")} /></Field>
+          <Field label={t("Гости")}><input type="number" min={1} value={q.guests} onChange={set("guests")} /></Field>
+          <Field label={t("Макс. вкупно (EUR)")}><input type="number" min={0} value={q.max_total} onChange={set("max_total")} /></Field>
         </div>
         <div className="chips">
           {AMENITIES.map(([k, l]) => (
@@ -85,37 +86,37 @@ export function Accommodations() {
                     onClick={() => setAmen(amen.includes(k) ? amen.filter((a) => a !== k) : [...amen, k])}>{l}</button>
           ))}
         </div>
-        <div><button className="btn btn-primary">Пребарај</button></div>
+        <div><button className="btn btn-primary">{t("Пребарај")}</button></div>
       </form>
-      {booked && <div className="alert alert-ok">{booked} <Link to="/reservations">Отвори ги резервациите</Link></div>}
+      {booked && <div className="alert alert-ok">{booked} <Link to="/reservations">{t("Отвори ги резервациите")}</Link></div>}
       {bookError && <ErrorBox message={bookError} />}
       {loading && <Loading />}
       {error && <ErrorBox message={error} />}
-      {data && data.length === 0 && <Empty title="Нема достапно сместување за овие критериуми.">Пробајте други датуми или помалку филтри.</Empty>}
+      {data && data.length === 0 && <Empty title={t("Нема достапно сместување за овие критериуми.")}>{t("Пробајте други датуми или помалку филтри.")}</Empty>}
       {data?.map((r) => (
         <article key={r.id} className="panel offer offer-with-photo">
           <Photo className="offer-photo" src={r.business.image_url || r.business.city_image_url} alt={r.title} seed={r.id} />
           <div className="stack" style={{ gap: 10 }}>
             <div>
-              {r.business.is_sponsored && <span className="sponsored">Спонзорирано</span>}
+              {r.business.is_sponsored && <span className="sponsored">{t("Спонзорирано")}</span>}
               <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={`/stay/${r.id}?check_in=${q.check_in}&check_out=${q.check_out}&guests=${q.guests}`}>{r.title}</Link></h2>
-              <Meta items={[r.business.name, r.type_label, `до ${r.max_guests} гости`, `${r.bedrooms} спални`]} />
+              <Meta items={[r.business.name, t(r.type_label), t("до {0} гости", { 0: r.max_guests }), t("{0} спални", { 0: r.bedrooms })]} />
             </div>
             <div className="chips">{r.amenities.map((a) => <span className="chip static" key={a}>{AMENITIES.find(([k]) => k === a)?.[1] || a}</span>)}</div>
-            <p className="small" style={{ margin: 0 }}>Зошто е предложено: {r.recommendation_reason}.</p>
-            <p className="small muted" style={{ margin: 0 }}>{r.rules} Бесплатно откажување до {r.free_cancellation_days} дена пред доаѓање.</p>
-            <Link className="small" to={`/stay/${r.id}?check_in=${q.check_in}&check_out=${q.check_out}&guests=${q.guests}`}>Види го огласот</Link>
+            <p className="small" style={{ margin: 0 }}>{t("Зошто е предложено:")} {r.recommendation_reason.split(", ").map((x) => (x.startsWith("оценка ") ? t("оценка {0}", { 0: x.slice(7) }) : t(x))).join(", ")}.</p>
+            <p className="small muted" style={{ margin: 0 }}>{r.rules} {t("Бесплатно откажување до")} {r.free_cancellation_days} {t("дена пред доаѓање.")}</p>
+            <Link className="small" to={`/stay/${r.id}?check_in=${q.check_in}&check_out=${q.check_out}&guests=${q.guests}`}>{t("Види го огласот")}</Link>
           </div>
           <div className="offer-price">
             <Stars value={r.avg_rating} count={r.review_count} />
             {r.quote ? (
               <>
                 <span className="offer-total">{eur(r.quote.total)}</span>
-                <span className="small muted">{r.quote.nights} ноќи {eur(r.quote.subtotal)}, трошоци {eur(r.quote.fees)}</span>
-                {user ? <button className="btn btn-primary btn-block" onClick={() => book(r)}>Испрати барање</button>
-                  : <Link className="btn btn-ghost btn-block" to="/login">Најави се за да резервираш</Link>}
+                <span className="small muted">{r.quote.nights} {t("ноќи")} {eur(r.quote.subtotal)}{t(", трошоци")} {eur(r.quote.fees)}</span>
+                {user ? <button className="btn btn-primary btn-block" onClick={() => book(r)}>{t("Испрати барање")}</button>
+                  : <Link className="btn btn-ghost btn-block" to="/login">{t("Најави се за да резервираш")}</Link>}
               </>
-            ) : <span className="small muted">Изберете датуми за цена.</span>}
+            ) : <span className="small muted">{t("Изберете датуми за цена.")}</span>}
           </div>
         </article>
       ))}
@@ -128,15 +129,15 @@ export function ReviewsList({ businessId }: { businessId: number }) {
   const { data } = useAsync(() => (open ? api<Review[]>(`/businesses/${businessId}/reviews/`) : Promise.resolve(null)), [open, businessId]);
   return (
     <div>
-      <button className="link-btn small" onClick={() => setOpen(!open)}>{open ? "Скриј рецензии" : "Прикажи рецензии"}</button>
-      {open && data && (data.length === 0 ? <p className="small muted">Сè уште нема рецензии.</p> : (
+      <button className="link-btn small" onClick={() => setOpen(!open)}>{open ? t("Скриј рецензии") : t("Прикажи рецензии")}</button>
+      {open && data && (data.length === 0 ? <p className="small muted">{t("Сè уште нема рецензии.")}</p> : (
         <ul className="reviews">
           {data.map((rv) => (
             <li key={rv.id}>
               <strong>★ {rv.rating}</strong> {rv.username}
-               {rv.is_verified_booking && <span className="pill pill-ok">Проверена резервација</span>}
+               {rv.is_verified_booking && <span className="pill pill-ok">{t("Проверена резервација")}</span>}
               <p>{rv.comment}</p>
-              {rv.reply && <p className="reply"><strong>Одговор од бизнисот:</strong> {rv.reply.reply_text}</p>}
+              {rv.reply && <p className="reply"><strong>{t("Одговор од бизнисот:")}</strong> {rv.reply.reply_text}</p>}
             </li>
           ))}
         </ul>
@@ -162,10 +163,10 @@ export function BoatTours() {
       const r = await api<{ id: number; total_price: string }>("/boat-reservations/", {
         method: "POST", json: { departure_id: depId, seats: seats[depId] || 1, idempotency_key: crypto.randomUUID() },
       });
-      setMsg(`Барањето #${r.id} е испратено (${eur(r.total_price)}).`);
+      setMsg(t("Барањето #{0} е испратено ({1}).", { 0: r.id, 1: eur(r.total_price) }));
       reload();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Грешка");
+      setErr(e instanceof Error ? e.message : t("Грешка"));
     }
   };
 
@@ -173,54 +174,54 @@ export function BoatTours() {
     <div className="stack">
       <div className="page-head" style={{ marginBottom: 0 }}>
         <div>
-          <h1>Бродски тури</h1>
-          <p>Слободните места се ажурираат при секое барање. Барањето го потврдува операторот.</p>
+          <h1>{t("Бродски тури")}</h1>
+          <p>{t("Слободните места се ажурираат при секое барање. Барањето го потврдува операторот.")}</p>
         </div>
       </div>
-      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">Отвори ги резервациите</Link></div>}
+      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Отвори ги резервациите")}</Link></div>}
       {err && <ErrorBox message={err} />}
       {loading && <Loading />}
       {error && <ErrorBox message={error} onRetry={reload} />}
-      {data?.map((t) => (
-        <article key={t.id} className="panel stack">
-          <Photo className="tour-photo" src={t.business.image_url || t.business.city_image_url} alt={t.title} seed={t.id + 1} />
+      {data?.map((tour) => (
+        <article key={tour.id} className="panel stack">
+          <Photo className="tour-photo" src={tour.business.image_url || tour.business.city_image_url} alt={tour.title} seed={tour.id + 1} />
           <div className="row between wrap gap">
             <div>
-              <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={`/boat-tours/${t.id}`}>{t.title}</Link></h2>
-              <Meta items={[t.business.name, t.route, `${Math.round(t.duration_min / 60)} часа`, `поаѓа од ${t.departure_point}`]} />
+              <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={`/boat-tours/${tour.id}`}>{tour.title}</Link></h2>
+              <Meta items={[tour.business.name, tour.route, t("{0} часа", { 0: Math.round(tour.duration_min / 60) }), t("поаѓа од {0}", { 0: tour.departure_point })]} />
             </div>
             <div className="price-block">
-              <span className="offer-total">{eur(t.price_per_person)}</span>
-              <span className="small muted">по лице</span>
+              <span className="offer-total">{eur(tour.price_per_person)}</span>
+              <span className="small muted">{t("по лице")}</span>
             </div>
           </div>
-          {t.description && <p style={{ margin: 0 }}>{t.description}</p>}
-          {t.stops.length > 0 && (
-            <p className="small muted" style={{ margin: 0 }}>Постојки: {t.stops.map((s) => s.name).join(", ")}</p>
+          {tour.description && <p style={{ margin: 0 }}>{tour.description}</p>}
+          {tour.stops.length > 0 && (
+            <p className="small muted" style={{ margin: 0 }}>{t("Постојки:")} {tour.stops.map((s) => s.name).join(", ")}</p>
           )}
-          <Link className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} to={`/boat-tours/${t.id}`}>Детали, рута и сите поаѓања</Link>
+          <Link className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} to={`/boat-tours/${tour.id}`}>{t("Детали, рута и сите поаѓања")}</Link>
           <table className="table table-cards">
-            <thead><tr><th>Поаѓање</th><th>Слободни места</th><th>Колку места</th><th /></tr></thead>
+            <thead><tr><th>{t("Поаѓање")}</th><th>{t("Слободни места")}</th><th>{t("Колку места")}</th><th /></tr></thead>
             <tbody>
-              {t.upcoming_departures.slice(0, showAll[t.id] ? undefined : 4).map((d) => (
+              {tour.upcoming_departures.slice(0, showAll[tour.id] ? undefined : 4).map((d) => (
                 <tr key={d.id}>
-                  <td data-label="Поаѓање">{fmtDateTime(d.starts_at)}</td>
-                  <td data-label="Слободни">{d.remaining_seats} од {d.capacity}</td>
-                  <td data-label="Места">
-                    <input type="number" min={1} max={d.remaining_seats} value={seats[d.id] || 1} aria-label="Број места"
+                  <td data-label={t("Поаѓање")}>{fmtDateTime(d.starts_at)}</td>
+                  <td data-label={t("Слободни")}>{d.remaining_seats} {t("од")} {d.capacity}</td>
+                  <td data-label={t("Места")}>
+                    <input type="number" min={1} max={d.remaining_seats} value={seats[d.id] || 1} aria-label={t("Број места")}
                            onChange={(e) => setSeats({ ...seats, [d.id]: Number(e.target.value) })} className="input-sm" />
                   </td>
                   <td className="td-actions">
-                    {user ? <button className="btn btn-primary btn-sm" disabled={d.remaining_seats < 1} onClick={() => book(d.id)}>Резервирај</button>
-                      : <Link to="/login" className="small">Најава</Link>}
+                    {user ? <button className="btn btn-primary btn-sm" disabled={d.remaining_seats < 1} onClick={() => book(d.id)}>{t("Резервирај")}</button>
+                      : <Link to="/login" className="small">{t("Најава")}</Link>}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {t.upcoming_departures.length > 4 && !showAll[t.id] && (
-            <button className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} onClick={() => setShowAll({ ...showAll, [t.id]: true })}>
-              Прикажи ги сите поаѓања ({t.upcoming_departures.length})
+          {tour.upcoming_departures.length > 4 && !showAll[tour.id] && (
+            <button className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} onClick={() => setShowAll({ ...showAll, [tour.id]: true })}>
+              {t("Прикажи ги сите поаѓања (")}{tour.upcoming_departures.length})
             </button>
           )}
         </article>
@@ -248,9 +249,9 @@ export function OtherServices() {
       const json = b.type === "TAXI" ? { business_id: b.id, reserved_for, guests: f.guests, pickup: f.pickup, destination: f.destination }
         : { business_id: b.id, reserved_for, guests: f.guests };
       const r = await api<{ id: number }>(path, { method: "POST", json: { ...json, idempotency_key: crypto.randomUUID() } });
-      setMsg(`Барањето #${r.id} е испратено до „${b.name}“.`);
+      setMsg(t("Барањето #{0} е испратено до „{1}“.", { 0: r.id, 1: b.name }));
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Внесете валиден датум и време.");
+      setErr(e instanceof Error ? e.message : t("Внесете валиден датум и време."));
     }
   };
 
@@ -258,11 +259,11 @@ export function OtherServices() {
     <div className="stack">
       <div className="page-head" style={{ marginBottom: 0 }}>
         <div>
-          <h1>Ресторани и такси</h1>
-          <p>Барањето не е гаранција. Бизнисот го прифаќа, одбива или предлага друг термин; таксито испраќа понуда со цена.</p>
+          <h1>{t("Ресторани и такси")}</h1>
+          <p>{t("Барањето не е гаранција. Бизнисот го прифаќа, одбива или предлага друг термин; таксито испраќа понуда со цена.")}</p>
         </div>
       </div>
-      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">Отвори ги резервациите</Link></div>}
+      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Отвори ги резервациите")}</Link></div>}
       {err && <ErrorBox message={err} />}
       <div className="grid grid-2">
         {data?.map((b) => {
@@ -273,7 +274,7 @@ export function OtherServices() {
               <div className="row between wrap gap">
                 <div>
                   <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={b.type === "TAXI" ? `/taxi/${b.id}` : `/restaurants/${b.id}`}>{b.name}</Link></h2>
-                  <Meta items={[b.type_label, b.city_name]} />
+                  <Meta items={[t(b.type_label), b.city_name]} />
                   {b.phone && <a className="phone-link" href={`tel:${b.phone.replace(/\s+/g, "")}`}>{b.phone}</a>}
                 </div>
                 <Stars value={b.avg_rating} count={b.review_count} />
@@ -281,19 +282,19 @@ export function OtherServices() {
               {user ? (
                 <>
                   <div className="grid grid-2">
-                    <Field label="Датум и време"><input type="datetime-local" value={f.when} onChange={(e) => upd({ when: e.target.value })} /></Field>
-                    <Field label={b.type === "TAXI" ? "Патници" : "Гости"}><input type="number" min={1} value={f.guests} onChange={(e) => upd({ guests: Number(e.target.value) })} /></Field>
+                    <Field label={t("Датум и време")}><input type="datetime-local" value={f.when} onChange={(e) => upd({ when: e.target.value })} /></Field>
+                    <Field label={b.type === "TAXI" ? t("Патници") : t("Гости")}><input type="number" min={1} value={f.guests} onChange={(e) => upd({ guests: Number(e.target.value) })} /></Field>
                   </div>
                   {b.type === "TAXI" && (
                     <div className="grid grid-2">
-                      <Field label="Преземање"><input value={f.pickup} onChange={(e) => upd({ pickup: e.target.value })} /></Field>
-                      <Field label="Дестинација"><input value={f.destination} onChange={(e) => upd({ destination: e.target.value })} /></Field>
+                      <Field label={t("Преземање")}><input value={f.pickup} onChange={(e) => upd({ pickup: e.target.value })} /></Field>
+                      <Field label={t("Дестинација")}><input value={f.destination} onChange={(e) => upd({ destination: e.target.value })} /></Field>
                     </div>
                   )}
-                  <button className="btn btn-primary btn-sm" disabled={!f.when} onClick={() => send(b)}>Испрати барање</button>
+                  <button className="btn btn-primary btn-sm" disabled={!f.when} onClick={() => send(b)}>{t("Испрати барање")}</button>
                 </>
-              ) : <Link to="/login" className="btn btn-ghost btn-sm" style={{ width: "fit-content" }}>Најави се за да испратиш барање</Link>}
-              <Link className="small" to={b.type === "TAXI" ? `/taxi/${b.id}` : `/restaurants/${b.id}`}>{b.type === "TAXI" ? "Тарифи, возила и контакт" : "Мени, работно време и контакт"}</Link>
+              ) : <Link to="/login" className="btn btn-ghost btn-sm" style={{ width: "fit-content" }}>{t("Најави се за да испратиш барање")}</Link>}
+              <Link className="small" to={b.type === "TAXI" ? `/taxi/${b.id}` : `/restaurants/${b.id}`}>{b.type === "TAXI" ? t("Тарифи, возила и контакт") : t("Мени, работно време и контакт")}</Link>
             </article>
           );
         })}

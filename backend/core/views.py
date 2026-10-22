@@ -83,4 +83,9 @@ def weather(request):
             raise ServiceError("Потребно: city, place или lat и lng.", code="invalid_location")
         if not (40.0 <= lat <= 43.0 and 20.0 <= lng <= 23.5):
             raise ServiceError("Локацијата е надвор од Македонија.", code="invalid_location")
-    return Response({"location": label, **get_weather(lat, lng)})
+    from .i18n import CITY_EN, get_lang
+
+    lang = get_lang(request)
+    if lang == "en":
+        label = CITY_EN.get(label, label)
+    return Response({"location": label, **get_weather(lat, lng, lang)})

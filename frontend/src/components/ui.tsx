@@ -1,8 +1,10 @@
+import { t } from "../i18n";
 import { ReactNode } from "react";
 import { fmtDate } from "../hooks";
 import type { Badge } from "../types";
+import Icon from "./Icon";
 
-export const Loading = ({ label = "Се вчитува" }: { label?: string }) => (
+export const Loading = ({ label = t("Се вчитува") }: { label?: string }) => (
   <div className="state" role="status">
     <span className="spinner" aria-hidden /> {label}
   </div>
@@ -13,7 +15,7 @@ export const ErrorBox = ({ message, onRetry }: { message: string; onRetry?: () =
     <span>{message}</span>
     {onRetry && (
       <button className="btn btn-ghost btn-sm" onClick={onRetry}>
-        Вчитај повторно
+        {t("Вчитај повторно")}
       </button>
     )}
   </div>
@@ -59,12 +61,12 @@ export const Progress = ({ value, label }: { value: number; label?: string }) =>
 
 export const Stars = ({ value, count }: { value: number | null; count?: number }) =>
   value ? (
-    <span className="stars" aria-label={`${value.toFixed(1)} од 5`}>
+    <span className="stars" aria-label={t("{0} од 5", { 0: value.toFixed(1) })}>
       ★ {value.toFixed(1)}
       {count !== undefined && <span className="muted small"> ({count})</span>}
     </span>
   ) : (
-    <span className="muted small">Сè уште нема оценки</span>
+    <span className="muted small">{t("Сè уште нема оценки")}</span>
   );
 
 export const Field = ({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) => (
@@ -76,6 +78,19 @@ export const Field = ({ label, children, hint }: { label: string; children: Reac
 );
 
 /** Беџ во форма на печат од пасош. */
+const ACCESS_TEXT: Record<string, string> = {
+  YES: t("Пристапно со количка"), LIMITED: t("Делумно пристапно"), NO: t("Непристапно"), UNKNOWN: t("Пристапност непроверена"),
+};
+
+export function AccessBadge({ level, notes, compact = false }: { level: string | null | undefined; notes?: string; compact?: boolean }) {
+  if (!level) return null;
+  return (
+    <span className={`access access-${level.toLowerCase()}`} title={notes || undefined}>
+      <Icon name="accessible" size={compact ? 14 : 16} />{ACCESS_TEXT[level] || level}
+    </span>
+  );
+}
+
 export function BadgeArt({ badge, size = 112, locked = false }: { badge: Badge; size?: number; locked?: boolean }) {
   if (!badge.art) {
     return (
@@ -94,7 +109,7 @@ export function Stamp({ badge, date, locked = false }: { badge: Badge; date?: st
     <div className={cls} title={badge.description}>
       <span className="stamp-art-wrap">
         <BadgeArt badge={badge} locked={locked} />
-        {locked && <span className="stamp-lock" aria-hidden>{badge.available === false ? "Наскоро" : "🔒"}</span>}
+        {locked && <span className="stamp-lock" aria-hidden>{badge.available === false ? t("Наскоро") : "🔒"}</span>}
       </span>
       <span className="stamp-name">{badge.name}</span>
       {date && <span className="stamp-date">{fmtDate(date)}</span>}

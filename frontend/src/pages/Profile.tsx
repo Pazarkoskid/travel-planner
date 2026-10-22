@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../services/api";
@@ -29,7 +30,7 @@ interface Notification {
 }
 
 function BadgeGrid({ badges }: { badges: { badge: Badge; unlocked_at: string }[] }) {
-  if (badges.length === 0) return <Empty title="Пасошот е уште празен.">Отворете место и документирајте ја посетата со фотографија.</Empty>;
+  if (badges.length === 0) return <Empty title={t("Пасошот е уште празен.")}>{t("Отворете место и документирајте ја посетата со фотографија.")}</Empty>;
   return (
     <div className="stamps">
       {badges.map(({ badge, unlocked_at }) => <Stamp key={badge.code} badge={badge} date={unlocked_at} />)}
@@ -44,9 +45,9 @@ function CityProgressList({ items }: { items: CityProgress[] }) {
         <div key={c.city} className="city-progress-row">
           <div className="row between wrap">
             <strong>{c.city_name}</strong>
-            <span className="small">{c.documented_required} од {c.required_total} знаменитости, {c.percent}%</span>
+            <span className="small">{c.documented_required} {t("од")} {c.required_total} {t("знаменитости,")} {c.percent}%</span>
           </div>
-          <Progress value={c.percent} label={`Истраженост на ${c.city_name}`} />
+          <Progress value={c.percent} label={t("Истраженост на {0}", { 0: c.city_name })} />
         </div>
       ))}
     </div>
@@ -57,7 +58,7 @@ export function PublicProfilePage() {
   const { username } = useParams();
   const { data: p, error, loading } = useAsync(() => api<PublicProfile>(`/users/${username}/`), [username]);
   if (loading) return <Loading />;
-  if (error || !p) return <ErrorBox message={error || "Не постои."} />;
+  if (error || !p) return <ErrorBox message={error || t("Не постои.")} />;
   return (
     <div className="stack">
       <div className="profile-head">
@@ -68,16 +69,16 @@ export function PublicProfilePage() {
           {p.bio && <p style={{ margin: "4px 0 0" }}>{p.bio}</p>}
         </div>
       </div>
-      <section className="panel"><h2>Печати</h2><BadgeGrid badges={p.badges} /></section>
-      {p.city_progress.length > 0 && <section className="panel"><h2>Истраженост по град</h2><CityProgressList items={p.city_progress} /></section>}
+      <section className="panel"><h2>{t("Печати")}</h2><BadgeGrid badges={p.badges} /></section>
+      {p.city_progress.length > 0 && <section className="panel"><h2>{t("Истраженост по град")}</h2><CityProgressList items={p.city_progress} /></section>}
       <section className="panel">
-        <h2>Посетени знаменитости</h2>
-        {p.visited_places.length === 0 ? <p className="muted">Уште нема документирани посети.</p> : (
+        <h2>{t("Посетени знаменитости")}</h2>
+        {p.visited_places.length === 0 ? <p className="muted">{t("Уште нема документирани посети.")}</p> : (
           <div className="chips">{p.visited_places.map((v) => <Link className="chip" key={v.id} to={`/places/${v.id}`}>{v.name}</Link>)}</div>
         )}
       </section>
       <section>
-        <h2>Фотографии</h2>
+        <h2>{t("Фотографии")}</h2>
         <div className="gallery">
           {p.photos.map((ph) => (
             <figure key={ph.id} className="photo">
@@ -113,31 +114,31 @@ export function MyProfile() {
   return (
     <div className="stack">
       <div className="row between wrap">
-        <h1>Мој профил</h1>
-        <Link to={`/u/${user.username}`} className="btn btn-ghost btn-sm">Јавен приказ</Link>
+        <h1>{t("Мој профил")}</h1>
+        <Link to={`/u/${user.username}`} className="btn btn-ghost btn-sm">{t("Јавен приказ")}</Link>
       </div>
       <form className="panel stack" onSubmit={save}>
-        <Field label="Кратка биографија"><input value={bio} maxLength={500} onChange={(e) => { setBio(e.target.value); setSaved(false); }} /></Field>
-        <label className="check"><input type="checkbox" checked={isPublic} onChange={(e) => { setIsPublic(e.target.checked); setSaved(false); }} /> Профилот е јавен</label>
-        <div className="row gap"><button className="btn btn-primary btn-sm">Зачувај</button>{saved && <span className="small">Зачувано.</span>}</div>
+        <Field label={t("Кратка биографија")}><input value={bio} maxLength={500} onChange={(e) => { setBio(e.target.value); setSaved(false); }} /></Field>
+        <label className="check"><input type="checkbox" checked={isPublic} onChange={(e) => { setIsPublic(e.target.checked); setSaved(false); }} /> {t("Профилот е јавен")}</label>
+        <div className="row gap"><button className="btn btn-primary btn-sm">{t("Зачувај")}</button>{saved && <span className="small">{t("Зачувано.")}</span>}</div>
       </form>
       {g.loading && <Loading />}
       {g.data && (
         <>
           <section className="panel">
-            <div className="row between wrap gap"><h2>Мој пасош</h2><Link to="/badges" className="btn btn-ghost btn-sm">Целата колекција</Link></div>
+            <div className="row between wrap gap"><h2>{t("Мој пасош")}</h2><Link to="/badges" className="btn btn-ghost btn-sm">{t("Целата колекција")}</Link></div>
             <BadgeGrid badges={g.data.badges} />
           </section>
-          <section className="panel"><h2>Истраженост по град</h2><CityProgressList items={g.data.city_progress} /></section>
+          <section className="panel"><h2>{t("Истраженост по град")}</h2><CityProgressList items={g.data.city_progress} /></section>
           <section className="panel">
-            <h2>Мои фото-посети</h2>
-            {g.data.checkins.length === 0 ? <p className="muted">Нема. Отворете место и документирајте посета.</p> : (
+            <h2>{t("Мои фото-посети")}</h2>
+            {g.data.checkins.length === 0 ? <p className="muted">{t("Нема. Отворете место и документирајте посета.")}</p> : (
               <ul className="plain">
                 {g.data.checkins.map((c) => (
                   <li key={c.id} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto auto", gap: 16, alignItems: "center" }}>
                     <Link to={`/places/${c.place}`}>{c.place_name}</Link>
                     <span className="small muted">{fmtDate(c.created_at)}</span>
-                    <StatusPill status={c.status} label={c.status === "APPROVED" ? "одобрено" : c.status === "PENDING" ? "чека проверка" : "одбиено"} />
+                    <StatusPill status={c.status} label={c.status === "APPROVED" ? t("одобрено") : c.status === "PENDING" ? t("чека проверка") : t("одбиено")} />
                   </li>
                 ))}
               </ul>
@@ -147,8 +148,8 @@ export function MyProfile() {
       )}
       <section className="panel">
         <div className="row between">
-          <h2>Известувања</h2>
-          <button className="btn btn-ghost btn-sm" onClick={async () => { await api("/notifications/read-all/", { method: "POST" }); notes.reload(); }}>Означи прочитано</button>
+          <h2>{t("Известувања")}</h2>
+          <button className="btn btn-ghost btn-sm" onClick={async () => { await api("/notifications/read-all/", { method: "POST" }); notes.reload(); }}>{t("Означи прочитано")}</button>
         </div>
         <ul className="plain">
           {notes.data?.slice(0, 20).map((n) => (

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, unwrap } from "../services/api";
@@ -7,14 +8,14 @@ import Photo from "../components/Photo";
 import type { AccommodationResult, BoatTour, City, Place, Review } from "../types";
 
 const INTERESTS: [string, string][] = [
-  ["", "Сите активности"],
-  ["history", "Историја"],
-  ["religion", "Цркви и манастири"],
-  ["nature", "Природа"],
-  ["beach", "Плажи"],
-  ["culture", "Култура"],
-  ["museums", "Музеи"],
-  ["local_food", "Локална храна"],
+  ["", t("Сите активности")],
+  ["history", t("Историја")],
+  ["religion", t("Цркви и манастири")],
+  ["nature", t("Природа")],
+  ["beach", t("Плажи")],
+  ["culture", t("Култура")],
+  ["museums", t("Музеи")],
+  ["local_food", t("Локална храна")],
 ];
 
 function SearchBar({ cities }: { cities: City[] }) {
@@ -33,11 +34,11 @@ function SearchBar({ cities }: { cities: City[] }) {
   };
 
   return (
-    <form className="searchbar" onSubmit={submit} aria-label="Пребарај патување">
+    <form className="searchbar" onSubmit={submit} aria-label={t("Пребарај патување")}>
       <label className="sb-field">
         <Icon name="pin" />
         <span className="sb-text">
-          <span className="sb-label">Дестинација</span>
+          <span className="sb-label">{t("Дестинација")}</span>
           <select value={cityId} onChange={(e) => setCity(e.target.value)}>
             {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -46,7 +47,7 @@ function SearchBar({ cities }: { cities: City[] }) {
       <label className="sb-field">
         <Icon name="route" />
         <span className="sb-text">
-          <span className="sb-label">Активност</span>
+          <span className="sb-label">{t("Активност")}</span>
           <select value={interest} onChange={(e) => setInterest(e.target.value)}>
             {INTERESTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
@@ -55,20 +56,20 @@ function SearchBar({ cities }: { cities: City[] }) {
       <label className="sb-field">
         <Icon name="calendar" />
         <span className="sb-text">
-          <span className="sb-label">Датум на поаѓање</span>
+          <span className="sb-label">{t("Датум на поаѓање")}</span>
           <input type="date" min={isoDate(0)} value={start} onChange={(e) => setStart(e.target.value)} required />
         </span>
       </label>
       <label className="sb-field">
         <Icon name="user" />
         <span className="sb-text">
-          <span className="sb-label">Гости</span>
+          <span className="sb-label">{t("Гости")}</span>
           <select value={guests} onChange={(e) => setGuests(e.target.value)}>
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n} {n === 1 ? "гостин" : "гости"}</option>)}
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n} {n === 1 ? t("гостин") : t("гости")}</option>)}
           </select>
         </span>
       </label>
-      <button className="btn btn-green sb-submit" disabled={!cityId}><Icon name="search" size={18} />Пребарај</button>
+      <button className="btn btn-green sb-submit" disabled={!cityId}><Icon name="search" size={18} />{t("Пребарај")}</button>
     </form>
   );
 }
@@ -97,17 +98,17 @@ function Carousel({ places }: { places: Place[] }) {
             <div className="dest-info">
               <span className="dest-badge"><Icon name="camera" size={13} />{p.badge_holders ?? 0}</span>
               <strong>{p.name}</strong>
-              <span>{p.city_name}, {p.visit_duration_min} мин</span>
+              <span>{p.city_name}, {p.visit_duration_min} {t("мин")}</span>
             </div>
           </Link>
         ))}
       </div>
       <div className="carousel-nav">
-        <button className="round-btn" aria-label="Претходни" onClick={() => go(-1)}><Icon name="left" size={18} /></button>
+        <button className="round-btn" aria-label={t("Претходни")} onClick={() => go(-1)}><Icon name="left" size={18} /></button>
         <div className="dots" aria-hidden>
           {Array.from({ length: pages }, (_, i) => <span key={i} className={i === Math.min(page, pages - 1) ? "on" : ""} />)}
         </div>
-        <button className="round-btn" aria-label="Следни" onClick={() => go(1)}><Icon name="right" size={18} /></button>
+        <button className="round-btn" aria-label={t("Следни")} onClick={() => go(1)}><Icon name="right" size={18} /></button>
       </div>
     </div>
   );
@@ -128,28 +129,28 @@ export default function Home() {
   const ohridTotal = ohrid?.required_landmarks || 10;
 
   const offers = useMemo(() => [
-    ...(tours || []).map((t) => ({
-      key: `t${t.id}`, to: "/boat-tours", img: t.business.image_url || sideImg?.image_url || t.business.city_image_url,
-      place: t.business.city_name, title: t.title, meta: `${Math.round(t.duration_min / 60)} часа, од ${t.departure_point}`,
-      price: `${eur(t.price_per_person)}`, unit: "по лице",
+    ...(tours || []).map((tour) => ({
+      key: `tour${tour.id}`, to: "/boat-tours", img: tour.business.image_url || sideImg?.image_url || tour.business.city_image_url,
+      place: tour.business.city_name, title: tour.title, meta: t("{0} часа, од {1}", { 0: Math.round(tour.duration_min / 60), 1: tour.departure_point }),
+      price: `${eur(tour.price_per_person)}`, unit: t("по лице"),
     })),
     ...(stays || []).map((s) => ({
       key: `s${s.id}`, to: "/stay", img: s.business.image_url || s.business.city_image_url, place: s.business.city_name,
-      title: s.title, meta: `${s.type_label}, до ${s.max_guests} гости`, price: "Цена по датум", unit: "",
+      title: s.title, meta: t("{0}, до {1} гости", { 0: t(s.type_label), 1: s.max_guests }), price: t("Цена по датум"), unit: "",
     })),
   ].slice(0, 4), [tours, stays, sideImg]);
 
   return (
     <>
       <section className="hero-full">
-        <Photo className="hero-bg" src={heroImg} alt="Црквата Св. Јован Канео над Охридското Езеро" eager seed={1} />
+        <Photo className="hero-bg" src={heroImg} alt={t("Црквата Св. Јован Канео над Охридското Езеро")} eager seed={1} />
         <div className="hero-shade" aria-hidden />
         <div className="container hero-inner">
-          <p className="hero-script-small">Истражи ја</p>
-          <h1 className="hero-script">Македонија</h1>
+          <p className="hero-script-small">{t("Истражи ја")}</p>
+          <h1 className="hero-script">{t("Македонија")}</h1>
           <div className="hero-side">
-            <p>Планови само со проверени места, оптимизирана рута и резервации кај локални домаќини.</p>
-            <Link to="/trips/new" className="btn btn-white">Направи план</Link>
+            <p>{t("Планови само со проверени места, оптимизирана рута и резервации кај локални домаќини.")}</p>
+            <Link to="/trips/new" className="btn btn-white">{t("Направи план")}</Link>
           </div>
         </div>
         {heroCredit && <span className="hero-credit">{heroCredit}</span>}
@@ -161,8 +162,8 @@ export default function Home() {
 
       <section className="container home-section">
         <header className="section-title">
-          <h2>Популарни <span>знаменитости</span></h2>
-          <p>Местата од официјалната листа за печатите „Град 100%“. Посетете ги, фотографирајте ги и соберете го градот.</p>
+          <h2>{t("Популарни")} <span>{t("знаменитости")}</span></h2>
+          <p>{t("Местата од официјалната листа за печатите „Град 100%“. Посетете ги, фотографирајте ги и соберете го градот.")}</p>
         </header>
         {places && <Carousel places={places} />}
       </section>
@@ -171,8 +172,8 @@ export default function Home() {
         <section className="band">
           <div className="container home-section">
             <header className="section-title">
-              <h2>Бродски тури и <span>сместување</span></h2>
-              <p>Локални понуди со јасна цена. Барањето го потврдува домаќинот, а рецензија пишува само тој што ја користел услугата.</p>
+              <h2>{t("Бродски тури и")} <span>{t("сместување")}</span></h2>
+              <p>{t("Локални понуди со јасна цена. Барањето го потврдува домаќинот, а рецензија пишува само тој што ја користел услугата.")}</p>
             </header>
             <div className="offer-grid">
               {offers.map((o, i) => (
@@ -184,7 +185,7 @@ export default function Home() {
                     <span className="small muted">{o.meta}</span>
                     <div className="offer-foot">
                       <span><b>{o.price}</b> {o.unit && <span className="muted small">/ {o.unit}</span>}</span>
-                      <span className="offer-cta">Резервирај</span>
+                      <span className="offer-cta">{t("Резервирај")}</span>
                     </div>
                   </div>
                 </Link>
@@ -196,23 +197,23 @@ export default function Home() {
 
       <section className="container home-section steps-section">
         <div className="steps-copy">
-          <h2>3 лесни чекори до вашето следно патување</h2>
+          <h2>{t("3 лесни чекори до вашето следно патување")}</h2>
           <Link to="/badges" className="promo-card">
-            <span className="promo-small">Соберете ги сите</span>
+            <span className="promo-small">{t("Соберете ги сите")}</span>
             <span className="promo-big">{ohridTotal}</span>
-            <span className="promo-small">печати во Охрид</span>
+            <span className="promo-small">{t("печати во Охрид")}</span>
           </Link>
         </div>
         <ol className="step-cards">
-          <li><span className="step-num">1</span><div><strong>Изберете дестинација</strong><span>Град, датуми, гости, буџет и интереси.</span></div></li>
-          <li><span className="step-num">2</span><div><strong>Добијте план по денови</strong><span>Места на карта, време за движење и ручек на патот.</span></div></li>
-          <li><span className="step-num">3</span><div><strong>Резервирајте и тргнете</strong><span>Сместување и тури кај локални домаќини.</span></div></li>
+          <li><span className="step-num">1</span><div><strong>{t("Изберете дестинација")}</strong><span>{t("Град, датуми, гости, буџет и интереси.")}</span></div></li>
+          <li><span className="step-num">2</span><div><strong>{t("Добијте план по денови")}</strong><span>{t("Места на карта, време за движење и ручек на патот.")}</span></div></li>
+          <li><span className="step-num">3</span><div><strong>{t("Резервирајте и тргнете")}</strong><span>{t("Сместување и тури кај локални домаќини.")}</span></div></li>
         </ol>
         <div className="steps-visual" aria-hidden>
           <Photo src={sideImg?.image_url} alt="" seed={3} className="steps-photo" />
           <div className="stamp-float">
             <span>📸</span>
-            <b>Св. Наум</b>
+            <b>{t("Св. Наум")}</b>
           </div>
         </div>
       </section>
@@ -221,23 +222,23 @@ export default function Home() {
         <section className="band">
           <div className="container home-section">
             <header className="section-title">
-              <h2>Искуства од <span>туристите</span></h2>
-              <p>Секоја рецензија е поврзана со завршена резервација.</p>
+              <h2>{t("Искуства од")} <span>{t("туристите")}</span></h2>
+              <p>{t("Секоја рецензија е поврзана со завршена резервација.")}</p>
             </header>
             <div className="review-grid">
               {reviews.slice(0, 3).map((r) => (
                 <figure key={r.id} className="review-card">
                   <span className="quote" aria-hidden>“</span>
-                  <blockquote>{r.comment || "Без коментар."}</blockquote>
+                  <blockquote>{r.comment || t("Без коментар.")}</blockquote>
                   <figcaption>
                     <span className="review-avatar">{r.username[0].toUpperCase()}</span>
                     <span>
                       <strong>{r.username}</strong>
                       <span className="small muted">{r.business_name}</span>
                     </span>
-                    <span className="review-stars" aria-label={`${r.rating} од 5`}>{"★".repeat(r.rating)}</span>
+                    <span className="review-stars" aria-label={t("{0} од 5", { 0: r.rating })}>{"★".repeat(r.rating)}</span>
                   </figcaption>
-                  {r.is_verified_booking && <span className="verified">Проверена резервација</span>}
+                  {r.is_verified_booking && <span className="verified">{t("Проверена резервација")}</span>}
                 </figure>
               ))}
             </div>
@@ -247,8 +248,8 @@ export default function Home() {
 
       <section className="container home-section">
         <header className="section-title">
-          <h2>Каде <span>одите?</span></h2>
-          <p>Три града за почеток. Секој има свој пасош со знаменитости.</p>
+          <h2>{t("Каде")} <span>{t("одите?")}</span></h2>
+          <p>{t("Три града за почеток. Секој има свој пасош со знаменитости.")}</p>
         </header>
         <div className="city-cards">
           {cities?.map((c, i) => (
@@ -256,8 +257,8 @@ export default function Home() {
               <Photo src={c.image_url} alt={c.name} credit={c.image_credit} seed={i} />
               <div className="city-overlay">
                 <strong>{c.name}</strong>
-                <span>{c.place_count} места, {c.required_landmarks} печати</span>
-                <span className="city-go">Планирај</span>
+                <span>{c.place_count} {t("места,")} {c.required_landmarks} {t("печати")}</span>
+                <span className="city-go">{t("Планирај")}</span>
               </div>
             </Link>
           ))}

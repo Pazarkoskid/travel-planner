@@ -75,3 +75,30 @@ def test_place_badge_gets_stamp_art(tourist, places):
     _, unlocked = visit(tourist, places["kaneo"], (70, 20, 130))
     assert B.objects.get(code="place-ohrid-kaneo").art == "/badges/stamp-ohrid-kaneo.webp"
     assert catalog.art_for_code("place-ohrid-unknown") == ""
+
+
+def test_badges_in_english(db):
+    rows = client_for().get("/api/v1/badges/?kind=region,category", HTTP_ACCEPT_LANGUAGE="en").json()
+    by_code = {r["code"]: r for r in rows}
+    assert by_code["region-ohrid-lake"]["name"] == "Lake Ohrid"
+    assert by_code["region-ohrid"]["description"] == "City — “Macedonia” collection"
+    assert by_code["history-buff"]["name"] == "History Buff"
+    mk = client_for().get("/api/v1/badges/?kind=region").json()
+    assert {r["code"]: r for r in mk}["region-ohrid-lake"]["name"] == "Охридско Езеро"
+
+
+def test_weather_passes_language(settings, city):
+    from unittest import mock
+
+    from django.core.cache import cache
+
+    from core import weather
+
+    from .test_management import fake_ow
+
+    settings.OPENWEATHER_API_KEY = "test"
+    cache.clear()
+    with mock.patch.object(weather, "_get", side_effect=fake_ow) as m:
+        r = client_for().get(f"/api/v1/weather/?city={city.slug}", HTTP_ACCEPT_LANGUAGE="en").json()
+    assert all(call.args[3] == "en" for call in m.call_args_list)
+    assert r["location"] == "Ohrid"

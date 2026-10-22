@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
@@ -30,7 +31,7 @@ export function Login() {
       await login(username, password);
       nav((loc.state as { from?: string })?.from || "/");
     } catch {
-      setError("Корисничкото име или лозинката не се точни.");
+      setError(t("Корисничкото име или лозинката не се точни."));
     } finally {
       setBusy(false);
     }
@@ -40,25 +41,25 @@ export function Login() {
     <AuthShell
       side={
         <>
-          <h2>Вашите планови, резервации и печати се на едно место.</h2>
+          <h2>{t("Вашите планови, резервации и печати се на едно место.")}</h2>
           <div className="small">
-            <p>Демо профили за тестирање:</p>
+            <p>{t("Демо профили за тестирање:")}</p>
             <p>turist / Turist12345!<br />host / Host12345!<br />admin / Admin12345!</p>
           </div>
         </>
       }
     >
       <form className="stack" onSubmit={submit}>
-        <h1>Најава</h1>
+        <h1>{t("Најава")}</h1>
         {error && <ErrorBox message={error} />}
-        <Field label="Корисничко име">
+        <Field label={t("Корисничко име")}>
           <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
         </Field>
-        <Field label="Лозинка">
+        <Field label={t("Лозинка")}>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </Field>
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Се најавувате" : "Најави се"}</button>
-        <p className="small">Немате профил? <Link to="/register">Регистрирајте се</Link></p>
+        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t("Се најавувате") : t("Најави се")}</button>
+        <p className="small">{t("Немате профил?")} <Link to="/register">{t("Регистрирајте се")}</Link></p>
       </form>
     </AuthShell>
   );
@@ -81,7 +82,7 @@ export function Register() {
       await login(form.username, form.password);
       nav("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Регистрацијата не успеа.");
+      setError(err instanceof Error ? err.message : t("Регистрацијата не успеа."));
     } finally {
       setBusy(false);
     }
@@ -91,26 +92,26 @@ export function Register() {
     <AuthShell
       side={
         <>
-          <h2>Туристите планираат. Локалните бизниси примаат барања.</h2>
-          <p className="small">Изберете „Сопственик или оператор“ ако нудите сместување, бродска тура, ресторан или такси. Бизнисот го одобрува администратор.</p>
+          <h2>{t("Туристите планираат. Локалните бизниси примаат барања.")}</h2>
+          <p className="small">{t("Изберете „Сопственик или оператор“ ако нудите сместување, бродска тура, ресторан или такси. Бизнисот го одобрува администратор.")}</p>
         </>
       }
     >
       <form className="stack" onSubmit={submit}>
-        <h1>Регистрација</h1>
+        <h1>{t("Регистрација")}</h1>
         {error && <ErrorBox message={error} />}
-        <Field label="Корисничко име"><input value={form.username} onChange={set("username")} autoComplete="username" required /></Field>
-        <Field label="Е-пошта"><input type="email" value={form.email} onChange={set("email")} autoComplete="email" required /></Field>
-        <Field label="Лозинка" hint="Најмалку 8 знаци, не само бројки.">
+        <Field label={t("Корисничко име")}><input value={form.username} onChange={set("username")} autoComplete="username" required /></Field>
+        <Field label={t("Е-пошта")}><input type="email" value={form.email} onChange={set("email")} autoComplete="email" required /></Field>
+        <Field label={t("Лозинка")} hint={t("Најмалку 8 знаци, не само бројки.")}>
           <input type="password" value={form.password} onChange={set("password")} autoComplete="new-password" required />
         </Field>
-        <Field label="Тип на профил">
+        <Field label={t("Тип на профил")}>
           <select value={form.role} onChange={set("role")}>
-            <option value="TOURIST">Турист</option>
-            <option value="BUSINESS">Сопственик или оператор</option>
+            <option value="TOURIST">{t("Турист")}</option>
+            <option value="BUSINESS">{t("Сопственик или оператор")}</option>
           </select>
         </Field>
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Се креира профилот" : "Креирај профил"}</button>
+        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t("Се креира профилот") : t("Креирај профил")}</button>
       </form>
     </AuthShell>
   );

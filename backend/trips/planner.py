@@ -53,6 +53,27 @@ REVISION_KEYWORDS = {
 }
 
 
+W = Place.Wheelchair
+# Подвижност → (исклучени нивоа, множител за времетраење на посета, намалување на места дневно)
+MOBILITY = {
+    "standard": (set(), 1.0, 0),
+    "reduced": ({W.NO}, 1.25, 1),
+    "wheelchair": ({W.NO}, 1.3, 1),
+}
+ACCESS_SCORE = {"reduced": {W.YES: 1.0, W.LIMITED: 0.0, W.UNKNOWN: -0.5},
+                "wheelchair": {W.YES: 2.0, W.LIMITED: -0.5, W.UNKNOWN: -2.0}}
+
+
+def accessibility_warning(mobility, wheelchair, notes):
+    if mobility == "standard" or wheelchair == W.YES:
+        return ""
+    if wheelchair == W.LIMITED:
+        return f"Делумно пристапно: {notes}" if notes else "Делумно пристапно — проверете го теренот."
+    if wheelchair == W.UNKNOWN:
+        return "Пристапноста не е проверена — јавете се однапред."
+    return f"Непристапно: {notes}" if notes else "Непристапно."
+
+
 def parse_revision(text):
     t = (text or "").lower()
     return {key for key, words in REVISION_KEYWORDS.items() if any(w in t for w in words)}
@@ -66,7 +87,7 @@ def start_point(trip):
 
 
 def per_day_count(trip):
-    n = PACE_PER_DAY.get(trip.pace, 6)
+    n = PACE_PER_DAY.get(trip.pace, 6) - MOBILITY.get(trip.mobility, MOBILITY["standard"])[2]
     mods = set(trip.modifiers.get("active", []))
     if "slower" in mods:
         n -= 1
@@ -97,7 +118,13 @@ def retrieve_candidates(trip):
     if trip.budget:
         budget_cap = Decimal(trip.budget) * Decimal("0.4")  # еден влез не смее да „изеде“ >40% од буџетот
     out, excluded = [], []
+    blocked, duration_factor, _ = MOBILITY.get(trip.mobility, MOBILITY["standard"])
+    access_score = ACCESS_SCORE.get(trip.mobility, {})
+    inaccessible = []
     for p in Place.objects.filter(city=trip.city, status=Place.Status.VERIFIED):
+        if p.wheelchair in blocked and p.id not in must:
+            inaccessible.append(p.name)
+            continue
         dist = haversine_km(s_lat, s_lng, p.lat, p.lng)
         score, reasons = 0.0, []
         if p.category in wanted:
@@ -116,20 +143,31 @@ def retrieve_candidates(trip):
             score += 2
         if "cheaper" in mods and p.price_eur is not None:
             score += 1 if p.price_eur == 0 else -1.5
+        if access_score:
+            score += access_score.get(p.wheelchair, 0)
+            if p.wheelchair == W.YES:
+                reasons.append("пристапно со инвалидска количка" if trip.mobility == "wheelchair" else "без скали")
         distance_weight = 0.35 if ("less_walking" in mods or trip.transport == "walking") else 0.08
+        if trip.mobility != "standard":
+            distance_weight *= 1.5
         score -= distance_weight * dist
         if budget_cap is not None and p.price_eur is not None and p.price_eur * trip.guests > budget_cap and p.id not in must:
             excluded.append(p.name)
             continue
-        if trip.transport == "walking" and dist > 6 and p.id not in must:
+        walk_limit = 3 if trip.mobility != "standard" else 6
+        if trip.transport == "walking" and dist > walk_limit and p.id not in must:
             continue  # недостижно пешки во разумно време
         out.append({
-            "id": p.id, "name": p.name, "category": p.category, "duration": p.visit_duration_min,
+            "id": p.id, "name": p.name, "category": p.category,
+            "duration": round(p.visit_duration_min * duration_factor),
+            "access_warning": accessibility_warning(trip.mobility, p.wheelchair, p.accessibility_notes),
+            "wheelchair": p.wheelchair,
             "price": float(p.price_eur) if p.price_eur is not None else None, "lat": p.lat, "lng": p.lng,
             "required": p.is_required_landmark, "score": round(score, 3), "reason": "; ".join(reasons),
             "opening": p.opening_time, "closing": p.closing_time, "must": p.id in must,
         })
     out.sort(key=lambda c: c["score"], reverse=True)
+    trip._inaccessible = inaccessible  # за предупредувањето во generate_plan
     return out, excluded
 
 
@@ -184,6 +222,8 @@ def schedule_day(ids, by_id, km, minutes, index_of, day_date):
         if c["closing"] and end.time() > c["closing"]:
             violations += 1
             warning = "Можно е да затвори пред крајот на посетата."
+        access = c.get("access_warning", "")
+        warning = " ".join(w for w in (warning, access) if w)
         items.append({"type": "PLACE", "id": pid, "start": t, "end": end, "travel": travel, "km": dist,
                       "warning": warning})
         t = end
@@ -216,6 +256,11 @@ def generate_plan(trip, instructions=""):
     candidates, excluded = retrieve_candidates(trip)
     if excluded:
         warnings.append(f"Изоставени поради буџетот: {', '.join(excluded)}.")
+    if getattr(trip, "_inaccessible", None):
+        warnings.append(f"Изоставени како непристапни: {', '.join(trip._inaccessible)}.")
+    if trip.mobility != "standard":
+        warnings.append("Пристапен режим: времето за посета е зголемено, а податоците за пристапност се проценки "
+                        "— проверете ги пред тргнување.")
     if not candidates:
         warnings.append("Нема проверени места што одговараат на барањето.")
     by_id = {c["id"]: c for c in candidates}
@@ -288,6 +333,8 @@ def generate_plan(trip, instructions=""):
         "place_validity": 1.0 if all_ids else None,
         "places_selected": len(all_ids),
         "unknown_hours": unknown_hours, "unknown_prices": unknown_price,
+        "accessible_share": (round(sum(1 for p in all_ids if by_id[p]["wheelchair"] == W.YES) / len(all_ids), 2)
+                             if all_ids and trip.mobility != "standard" else None),
     })
 
     with transaction.atomic():
@@ -316,7 +363,7 @@ def generate_plan(trip, instructions=""):
                     start_time=it["start"].time(), end_time=it["end"].time(),
                     travel_minutes_from_prev=round(it["travel"], 1), distance_km_from_prev=round(it["km"], 2),
                     est_cost=cost, reason=reasons.get(c["id"]) or c["reason"] or "блиску до маршрутата",
-                    warning=it["warning"],
+                    warning=it["warning"][:300],
                 )
                 last_lat, last_lng = c["lat"], c["lng"]
         metrics["known_cost_eur"] = float(known_cost)

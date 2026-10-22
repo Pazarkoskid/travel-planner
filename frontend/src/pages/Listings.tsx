@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
@@ -12,11 +13,11 @@ import { ReviewsList } from "./Services";
 import type { AccommodationResult, BoatTour, Business, Restaurant, TaxiService } from "../types";
 
 const AMENITY_LABEL: Record<string, string> = {
-  wifi: "Wi-Fi", ac: "Клима", parking: "Паркинг", kitchen: "Кујна", terrace: "Тераса", lake_view: "Поглед на езеро",
-  accessible: "Пристапно", pets: "Миленичиња",
+  wifi: "Wi-Fi", ac: t("Клима"), parking: t("Паркинг"), kitchen: t("Кујна"), terrace: t("Тераса"), lake_view: t("Поглед на езеро"),
+  accessible: t("Пристапно"), pets: t("Миленичиња"),
 };
 const DAY_LABEL: [string, string][] = [
-  ["mon", "Понеделник"], ["tue", "Вторник"], ["wed", "Среда"], ["thu", "Четврток"], ["fri", "Петок"], ["sat", "Сабота"], ["sun", "Недела"],
+  ["mon", t("Понеделник")], ["tue", t("Вторник")], ["wed", t("Среда")], ["thu", t("Четврток")], ["fri", t("Петок")], ["sat", t("Сабота")], ["sun", t("Недела")],
 ];
 
 function addDays(iso: string, n: number) {
@@ -44,15 +45,15 @@ function DetailHero({ img, alt, seed, kicker, title, children }: {
 function ContactCard({ b, extra }: { b: Business; extra?: React.ReactNode }) {
   return (
     <aside className="panel contact-card">
-      <h2>Контакт</h2>
+      <h2>{t("Контакт")}</h2>
       <strong className="contact-name">{b.name}</strong>
       {b.phone ? (
         <a className="btn btn-primary btn-block contact-phone" href={`tel:${b.phone.replace(/\s+/g, "")}`}>
           <Icon name="phone" size={18} />{b.phone}
         </a>
-      ) : <p className="small muted">Бизнисот не објавил телефон.</p>}
+      ) : <p className="small muted">{t("Бизнисот не објавил телефон.")}</p>}
       {b.email && <a className="contact-line" href={`mailto:${b.email}`}><Icon name="mail" size={18} />{b.email}</a>}
-      {b.website && <a className="contact-line" href={b.website} target="_blank" rel="noreferrer"><Icon name="globe" size={18} />Веб-страница</a>}
+      {b.website && <a className="contact-line" href={b.website} target="_blank" rel="noreferrer"><Icon name="globe" size={18} />{t("Веб-страница")}</a>}
       {b.address && <span className="contact-line"><Icon name="pin" size={18} />{b.address}, {b.city_name}</span>}
       {extra}
       <Stars value={b.avg_rating} count={b.review_count} />
@@ -71,7 +72,7 @@ function RequestForm({ b, kind, capacity }: { b: Business; kind: "TAXI" | "RESTA
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (!user) return <Link to="/login" className="btn btn-ghost">Најави се за да испратиш барање</Link>;
+  if (!user) return <Link to="/login" className="btn btn-ghost">{t("Најави се за да испратиш барање")}</Link>;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -82,9 +83,9 @@ function RequestForm({ b, kind, capacity }: { b: Business; kind: "TAXI" | "RESTA
       const r = await api<{ id: number }>(kind === "TAXI" ? "/taxi-requests/" : "/restaurant-reservations/", {
         method: "POST", json: kind === "TAXI" ? { ...base, pickup, destination } : base,
       });
-      setMsg(`Барањето #${r.id} е испратено. ${kind === "TAXI" ? "Операторот ќе испрати понуда со цена." : "Ресторанот ќе го потврди терминот."}`);
+      setMsg(t("Барањето #{0} е испратено. {1}", { 0: r.id, 1: kind === "TAXI" ? t("Операторот ќе испрати понуда со цена.") : t("Ресторанот ќе го потврди терминот.") }));
     } catch (e2) {
-      setErr(e2 instanceof Error ? e2.message : "Барањето не е испратено.");
+      setErr(e2 instanceof Error ? e2.message : t("Барањето не е испратено."));
     } finally {
       setBusy(false);
     }
@@ -92,22 +93,22 @@ function RequestForm({ b, kind, capacity }: { b: Business; kind: "TAXI" | "RESTA
 
   return (
     <form className="stack" onSubmit={submit}>
-      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">Мои резервации</Link></div>}
+      {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Мои резервации")}</Link></div>}
       {err && <ErrorBox message={err} />}
       <div className="grid grid-2">
-        <Field label="Датум и време"><input type="datetime-local" value={when} min={`${isoDate(0)}T00:00`} onChange={(e) => setWhen(e.target.value)} required /></Field>
-        <Field label={kind === "TAXI" ? `Патници (до ${capacity})` : `Гости (до ${capacity})`}>
+        <Field label={t("Датум и време")}><input type="datetime-local" value={when} min={`${isoDate(0)}T00:00`} onChange={(e) => setWhen(e.target.value)} required /></Field>
+        <Field label={kind === "TAXI" ? t("Патници (до {0})", { 0: capacity }) : t("Гости (до {0})", { 0: capacity })}>
           <input type="number" min={1} max={capacity} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
         </Field>
       </div>
       {kind === "TAXI" && (
         <div className="grid grid-2">
-          <Field label="Преземање"><input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="пр. Хотел, улица" required /></Field>
-          <Field label="Дестинација"><input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="пр. Св. Наум" required /></Field>
+          <Field label={t("Преземање")}><input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder={t("пр. Хотел, улица")} required /></Field>
+          <Field label={t("Дестинација")}><input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder={t("пр. Св. Наум")} required /></Field>
         </div>
       )}
-      <Field label="Белешка (опционално)"><input value={notes} maxLength={500} onChange={(e) => setNotes(e.target.value)} /></Field>
-      <div><button className="btn btn-primary" disabled={busy || !when}>{busy ? "Се испраќа" : "Испрати барање"}</button></div>
+      <Field label={t("Белешка (опционално)")}><input value={notes} maxLength={500} onChange={(e) => setNotes(e.target.value)} /></Field>
+      <div><button className="btn btn-primary" disabled={busy || !when}>{busy ? t("Се испраќа") : t("Испрати барање")}</button></div>
     </form>
   );
 }
@@ -138,65 +139,65 @@ export function AccommodationDetail() {
       const r = await api<{ id: number }>("/accommodation-bookings/", {
         method: "POST", json: { unit_id: unitId, check_in: checkIn, check_out: checkOut, guests, idempotency_key: crypto.randomUUID() },
       });
-      setMsg(`Барањето #${r.id} е испратено. Домаќинот ќе го потврди.`);
+      setMsg(t("Барањето #{0} е испратено. Домаќинот ќе го потврди.", { 0: r.id }));
       setRefresh((x) => x + 1);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Барањето не е испратено.");
+      setErr(e instanceof Error ? e.message : t("Барањето не е испратено."));
     }
   };
 
   if (loading) return <Loading />;
-  if (error || !acc) return <ErrorBox message={error || "Огласот не постои."} />;
+  if (error || !acc) return <ErrorBox message={error || t("Огласот не постои.")} />;
   const b = acc.business;
 
   return (
     <div className="stack-lg">
       <DetailHero img={acc.image_url || b.image_url || b.city_image_url} alt={acc.title} seed={acc.id}
-                  kicker={<><Link to="/stay">Сместување</Link>, {b.city_name}</>} title={acc.title} />
+                  kicker={<><Link to="/stay">{t("Сместување")}</Link>, {b.city_name}</>} title={acc.title} />
       <div className="detail-grid">
         <div className="stack-lg">
           <section className="panel stack">
-            <Meta items={[acc.type_label, `до ${acc.max_guests} гости`, `${acc.bedrooms} спални`, `${acc.beds} кревети`]} />
+            <Meta items={[t(acc.type_label), t("до {0} гости", { 0: acc.max_guests }), t("{0} спални", { 0: acc.bedrooms }), t("{0} кревети", { 0: acc.beds })]} />
             {acc.description && <p style={{ margin: 0 }}>{acc.description}</p>}
             <div className="chips">{acc.amenities.map((a) => <span key={a} className="chip static">{AMENITY_LABEL[a] || a}</span>)}</div>
           </section>
 
           <section className="panel stack">
-            <h2>Провери достапност</h2>
+            <h2>{t("Провери достапност")}</h2>
             <div className="grid grid-3">
               <Field label="Check-in"><input type="date" min={isoDate(0)} value={checkIn} onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(addDays(e.target.value, 1)); }} /></Field>
               <Field label="Check-out"><input type="date" min={addDays(checkIn, 1)} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} /></Field>
-              <Field label={`Гости (до ${acc.max_guests})`}><input type="number" min={1} max={acc.max_guests} value={guests} onChange={(e) => setGuests(Number(e.target.value))} /></Field>
+              <Field label={t("Гости (до {0})", { 0: acc.max_guests })}><input type="number" min={1} max={acc.max_guests} value={guests} onChange={(e) => setGuests(Number(e.target.value))} /></Field>
             </div>
-            {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">Мои резервации</Link></div>}
+            {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Мои резервации")}</Link></div>}
             {err && <ErrorBox message={err} />}
-            {avail.loading && <Loading label="Се проверува" />}
+            {avail.loading && <Loading label={t("Се проверува")} />}
             {avail.error && <ErrorBox message={avail.error} />}
             <ul className="plain">
               {avail.data?.units.map((u) => (
                 <li key={u.unit_id} className="unit-row">
                   <div>
                     <strong>{u.unit_name}</strong>
-                    <div className="small muted">{u.available ? `${u.nights} ноќи, со сите познати трошоци` : "Не е слободно за сите ноќи"}</div>
+                    <div className="small muted">{u.available ? t("{0} ноќи, со сите познати трошоци", { 0: u.nights }) : t("Не е слободно за сите ноќи")}</div>
                   </div>
                   {u.available && <span className="offer-total">{eur(u.total)}</span>}
                   {u.available && (user
-                    ? <button className="btn btn-primary btn-sm" onClick={() => book(u.unit_id)}>Испрати барање</button>
-                    : <Link className="btn btn-ghost btn-sm" to="/login">Најави се</Link>)}
+                    ? <button className="btn btn-primary btn-sm" onClick={() => book(u.unit_id)}>{t("Испрати барање")}</button>
+                    : <Link className="btn btn-ghost btn-sm" to="/login">{t("Најави се")}</Link>)}
                 </li>
               ))}
             </ul>
           </section>
 
           <section className="panel stack">
-            <h2>Правила</h2>
-            <p style={{ margin: 0 }}>{acc.rules || "Домаќинот нема внесено посебни правила."}</p>
+            <h2>{t("Правила")}</h2>
+            <p style={{ margin: 0 }}>{acc.rules || t("Домаќинот нема внесено посебни правила.")}</p>
             <p className="small muted" style={{ margin: 0 }}>
-              Бесплатно откажување до {acc.free_cancellation_days} дена пред доаѓање. Трошок за чистење: {eur(acc.cleaning_fee)}.
+              {t("Бесплатно откажување до")} {acc.free_cancellation_days} {t("дена пред доаѓање. Трошок за чистење:")} {eur(acc.cleaning_fee)}.
             </p>
           </section>
 
-          <section className="panel"><h2>Рецензии</h2><ReviewsList businessId={b.id} /></section>
+          <section className="panel"><h2>{t("Рецензии")}</h2><ReviewsList businessId={b.id} /></section>
         </div>
         <div className="stack-lg detail-side">
           <ContactCard b={b} />
@@ -219,17 +220,17 @@ function clock(start: string | null, plusMin: number) {
 export function BoatTourDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { data: t, error, loading, reload } = useAsync(() => api<BoatTour>(`/boat-tours/${id}/`), [id]);
+  const { data: tour, error, loading, reload } = useAsync(() => api<BoatTour>(`/boat-tours/${id}/`), [id]);
   const [selected, setSelected] = useState<number | null>(null);
   const [seats, setSeats] = useState(2);
   const [showAll, setShowAll] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const dep = t?.upcoming_departures.find((d) => d.id === selected) || t?.upcoming_departures[0] || null;
+  const dep = tour?.upcoming_departures.find((d) => d.id === selected) || tour?.upcoming_departures[0] || null;
   const stopPoints = useMemo(
-    () => (t?.stops || []).filter((s) => s.lat && s.lng).map((s, i) => ({ lat: s.lat!, lng: s.lng!, label: s.name, order: i + 1, sub: s.note })),
-    [t],
+    () => (tour?.stops || []).filter((s) => s.lat && s.lng).map((s, i) => ({ lat: s.lat!, lng: s.lng!, label: s.name, order: i + 1, sub: s.note })),
+    [tour],
   );
 
   const book = async () => {
@@ -239,49 +240,49 @@ export function BoatTourDetail() {
       const r = await api<{ id: number; total_price: string }>("/boat-reservations/", {
         method: "POST", json: { departure_id: dep.id, seats, idempotency_key: crypto.randomUUID() },
       });
-      setMsg(`Барањето #${r.id} е испратено (${eur(r.total_price)}). Операторот ќе го потврди.`);
+      setMsg(t("Барањето #{0} е испратено ({1}). Операторот ќе го потврди.", { 0: r.id, 1: eur(r.total_price) }));
       reload();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Барањето не е испратено.");
+      setErr(e instanceof Error ? e.message : t("Барањето не е испратено."));
     }
   };
 
   if (loading) return <Loading />;
-  if (error || !t) return <ErrorBox message={error || "Турата не постои."} />;
-  const b = t.business;
-  const hours = Math.floor(t.duration_min / 60);
-  const mins = t.duration_min % 60;
+  if (error || !tour) return <ErrorBox message={error || t("Турата не постои.")} />;
+  const b = tour.business;
+  const hours = Math.floor(tour.duration_min / 60);
+  const mins = tour.duration_min % 60;
 
   return (
     <div className="stack-lg">
-      <DetailHero img={b.image_url || b.city_image_url} alt={t.title} seed={t.id + 1}
-                  kicker={<><Link to="/boat-tours">Бродски тури</Link>, {b.city_name}</>} title={t.title}>
+      <DetailHero img={b.image_url || b.city_image_url} alt={tour.title} seed={tour.id + 1}
+                  kicker={<><Link to="/boat-tours">{t("Бродски тури")}</Link>, {b.city_name}</>} title={tour.title}>
         <div className="banner-facts">
-          <span><Icon name="clock" size={16} />{hours} ч{mins ? ` ${mins} мин` : ""}</span>
-          <span><Icon name="pin" size={16} />Поаѓа од {t.departure_point}</span>
-          <span><Icon name="ticket" size={16} />{eur(t.price_per_person)} по лице</span>
+          <span><Icon name="clock" size={16} />{hours} {t("ч")}{mins ? t(" {0} мин", { 0: mins }) : ""}</span>
+          <span><Icon name="pin" size={16} />{t("Поаѓа од")} {tour.departure_point}</span>
+          <span><Icon name="ticket" size={16} />{eur(tour.price_per_person)} {t("по лице")}</span>
         </div>
       </DetailHero>
 
       <div className="detail-grid">
         <div className="stack-lg">
-          {t.description && <section className="panel"><h2>За турата</h2><p style={{ margin: 0 }}>{t.description}</p></section>}
+          {tour.description && <section className="panel"><h2>{t("За турата")}</h2><p style={{ margin: 0 }}>{tour.description}</p></section>}
 
           <section className="panel stack">
             <div className="row between wrap gap">
-              <h2 style={{ margin: 0 }}>Рута и постојки</h2>
-              {dep && <span className="small muted">Времиња за поаѓање {fmtDateTime(dep.starts_at)}</span>}
+              <h2 style={{ margin: 0 }}>{t("Рута и постојки")}</h2>
+              {dep && <span className="small muted">{t("Времиња за поаѓање")} {fmtDateTime(dep.starts_at)}</span>}
             </div>
-            {t.stops.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t.route}</p> : (
+            {tour.stops.length === 0 ? <p className="muted" style={{ margin: 0 }}>{tour.route}</p> : (
               <ol className="route">
-                {t.stops.map((s, i) => (
-                  <li key={i} className={`stop ${i === 0 || i === t.stops.length - 1 ? "stop-end" : ""}`}>
+                {tour.stops.map((s, i) => (
+                  <li key={i} className={`stop ${i === 0 || i === tour.stops.length - 1 ? "stop-end" : ""}`}>
                     <span className="stop-marker" aria-hidden />
                     <div className="stop-body">
-                      <div className="stop-time">{clock(dep?.starts_at || null, s.minutes) || `+${s.minutes} мин`}</div>
+                      <div className="stop-time">{clock(dep?.starts_at || null, s.minutes) || t("+{0} мин", { 0: s.minutes })}</div>
                       <div className="stop-title">{s.name}</div>
                       {s.note && <p className="stop-reason">{s.note}</p>}
-                      {!!s.stop_min && <span className="stop-travel">Постојка {s.stop_min} мин</span>}
+                      {!!s.stop_min && <span className="stop-travel">{t("Постојка")} {s.stop_min} {t("мин")}</span>}
                     </div>
                   </li>
                 ))}
@@ -291,50 +292,50 @@ export function BoatTourDetail() {
           </section>
 
           <section className="panel stack">
-            <h2>Поаѓања</h2>
-            {t.upcoming_departures.length === 0 ? <Empty title="Нема закажани поаѓања." /> : (
+            <h2>{t("Поаѓања")}</h2>
+            {tour.upcoming_departures.length === 0 ? <Empty title={t("Нема закажани поаѓања.")} /> : (
               <>
-                <div className="departure-grid" role="radiogroup" aria-label="Избери поаѓање">
-                  {t.upcoming_departures.slice(0, showAll ? undefined : 12).map((d) => (
+                <div className="departure-grid" role="radiogroup" aria-label={t("Избери поаѓање")}>
+                  {tour.upcoming_departures.slice(0, showAll ? undefined : 12).map((d) => (
                     <button key={d.id} role="radio" aria-checked={dep?.id === d.id} disabled={d.remaining_seats < 1}
                             className={dep?.id === d.id ? "dep on" : "dep"} onClick={() => setSelected(d.id)}>
                       <strong>{fmtDateTime(d.starts_at)}</strong>
-                      <span>{d.remaining_seats > 0 ? `${d.remaining_seats} слободни` : "Полно"}</span>
+                      <span>{d.remaining_seats > 0 ? t("{0} слободни", { 0: d.remaining_seats }) : t("Полно")}</span>
                       <WeatherChip query={`city=${b.city}`} date={d.starts_at.slice(0, 10)} />
                     </button>
                   ))}
                 </div>
-                {!showAll && t.upcoming_departures.length > 12 && (
+                {!showAll && tour.upcoming_departures.length > 12 && (
                   <button className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} onClick={() => setShowAll(true)}>
-                    Прикажи ги сите {t.upcoming_departures.length} поаѓања
+                    {t("Прикажи ги сите {0} поаѓања", { 0: tour.upcoming_departures.length })}
                   </button>
                 )}
-                {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">Мои резервации</Link></div>}
+                {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Мои резервации")}</Link></div>}
                 {err && <ErrorBox message={err} />}
                 {dep && (
                   <div className="book-bar">
                     <div>
                       <strong>{fmtDateTime(dep.starts_at)}</strong>
-                      <div className="small muted">{seats} × {eur(t.price_per_person)} = <b>{eur(Number(t.price_per_person) * seats)}</b></div>
+                      <div className="small muted">{seats} × {eur(tour.price_per_person)} = <b>{eur(Number(tour.price_per_person) * seats)}</b></div>
                     </div>
-                    <Field label="Места">
+                    <Field label={t("Места")}>
                       <input type="number" min={1} max={dep.remaining_seats} value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="input-sm" />
                     </Field>
-                    {user ? <button className="btn btn-primary" onClick={book}>Резервирај</button>
-                      : <Link className="btn btn-ghost" to="/login">Најави се</Link>}
+                    {user ? <button className="btn btn-primary" onClick={book}>{t("Резервирај")}</button>
+                      : <Link className="btn btn-ghost" to="/login">{t("Најави се")}</Link>}
                   </div>
                 )}
               </>
             )}
           </section>
 
-          {(t.includes || t.rules) && (
+          {(tour.includes || tour.rules) && (
             <section className="panel stack">
-              {t.includes && <div><h2>Вклучено во цената</h2><p style={{ margin: 0 }}>{t.includes}</p></div>}
-              {t.rules && <div><h2>Правила</h2><p style={{ margin: 0 }}>{t.rules}</p></div>}
+              {tour.includes && <div><h2>{t("Вклучено во цената")}</h2><p style={{ margin: 0 }}>{tour.includes}</p></div>}
+              {tour.rules && <div><h2>{t("Правила")}</h2><p style={{ margin: 0 }}>{tour.rules}</p></div>}
             </section>
           )}
-          <section className="panel"><h2>Рецензии</h2><ReviewsList businessId={b.id} /></section>
+          <section className="panel"><h2>{t("Рецензии")}</h2><ReviewsList businessId={b.id} /></section>
         </div>
         <div className="stack-lg detail-side">
           <ContactCard b={b} />
@@ -349,41 +350,41 @@ export function BoatTourDetail() {
 
 export function TaxiDetail() {
   const { id } = useParams();
-  const { data: t, error, loading } = useAsync(() => api<TaxiService>(`/taxi-services/${id}/`), [id]);
+  const { data: taxi, error, loading } = useAsync(() => api<TaxiService>(`/taxi-services/${id}/`), [id]);
   if (loading) return <Loading />;
-  if (error || !t) return <ErrorBox message={error || "Таксито не постои."} />;
-  const b = t.business;
-  const fares = t.base_fare || t.per_km;
+  if (error || !taxi) return <ErrorBox message={error || t("Таксито не постои.")} />;
+  const b = taxi.business;
+  const fares = taxi.base_fare || taxi.per_km;
   return (
     <div className="stack-lg">
       <DetailHero img={b.image_url || b.city_image_url} alt={b.name} seed={b.id} title={b.name}
-                  kicker={<><Link to="/services">Такси</Link>, {b.city_name}</>}>
+                  kicker={<><Link to="/services">{t("Такси")}</Link>, {b.city_name}</>}>
         <div className="banner-facts">
-          {t.available_24h && <span><Icon name="clock" size={16} />Достапно 0–24</span>}
-          <span><Icon name="user" size={16} />До {t.passenger_capacity} патници</span>
+          {taxi.available_24h && <span><Icon name="clock" size={16} />{t("Достапно 0–24")}</span>}
+          <span><Icon name="user" size={16} />{t("До")} {taxi.passenger_capacity} {t("патници")}</span>
         </div>
       </DetailHero>
       <div className="detail-grid">
         <div className="stack-lg">
           <section className="panel stack">
-            <h2>За службата</h2>
+            <h2>{t("За службата")}</h2>
             {b.description && <p style={{ margin: 0 }}>{b.description}</p>}
             <dl className="facts">
-              <dt>Подрачје</dt><dd>{t.service_area}</dd>
-              {t.vehicles && <><dt>Возила</dt><dd>{t.vehicles}</dd></>}
-              {t.languages && <><dt>Јазици</dt><dd>{t.languages}</dd></>}
-              <dt>Работно време</dt><dd>{t.available_24h ? "0–24, секој ден" : "Според договор"}</dd>
-              <dt>Тарифа</dt>
-              <dd>{fares ? <>Старт {eur(t.base_fare)}, по километар {eur(t.per_km)}</> : "По понуда за секое возење"}</dd>
+              <dt>{t("Подрачје")}</dt><dd>{taxi.service_area}</dd>
+              {taxi.vehicles && <><dt>{t("Возила")}</dt><dd>{taxi.vehicles}</dd></>}
+              {taxi.languages && <><dt>{t("Јазици")}</dt><dd>{taxi.languages}</dd></>}
+              <dt>{t("Работно време")}</dt><dd>{taxi.available_24h ? t("0–24, секој ден") : t("Според договор")}</dd>
+              <dt>{t("Тарифа")}</dt>
+              <dd>{fares ? <>{t("Старт")} {eur(taxi.base_fare)}{t(", по километар")} {eur(taxi.per_km)}</> : t("По понуда за секое возење")}</dd>
             </dl>
-            {t.fare_info && <p className="small muted" style={{ margin: 0 }}>{t.fare_info}</p>}
+            {taxi.fare_info && <p className="small muted" style={{ margin: 0 }}>{taxi.fare_info}</p>}
           </section>
           <section className="panel stack">
-            <h2>Барај превоз</h2>
-            <p className="small muted" style={{ margin: 0 }}>Операторот испраќа понуда со цена, која ја прифаќате во „Мои резервации“.</p>
-            <RequestForm b={b} kind="TAXI" capacity={t.passenger_capacity} />
+            <h2>{t("Барај превоз")}</h2>
+            <p className="small muted" style={{ margin: 0 }}>{t("Операторот испраќа понуда со цена, која ја прифаќате во „Мои резервации“.")}</p>
+            <RequestForm b={b} kind="TAXI" capacity={taxi.passenger_capacity} />
           </section>
-          <section className="panel"><h2>Рецензии</h2><ReviewsList businessId={b.id} /></section>
+          <section className="panel"><h2>{t("Рецензии")}</h2><ReviewsList businessId={b.id} /></section>
         </div>
         <div className="stack-lg detail-side">
           <ContactCard b={b} />
@@ -400,43 +401,43 @@ export function RestaurantDetail() {
   const { id } = useParams();
   const { data: r, error, loading } = useAsync(() => api<Restaurant>(`/restaurants/${id}/`), [id]);
   if (loading) return <Loading />;
-  if (error || !r) return <ErrorBox message={error || "Ресторанот не постои."} />;
+  if (error || !r) return <ErrorBox message={error || t("Ресторанот не постои.")} />;
   const b = r.business;
   const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
   const fmtSpan = (span: string[] | string | null | undefined) =>
-    Array.isArray(span) && span.length === 2 ? `${span[0]} до ${span[1]}` : span === undefined ? "нема податок" : "затворено";
+    Array.isArray(span) && span.length === 2 ? t("{0} до {1}", { 0: span[0], 1: span[1] }) : span === undefined ? t("нема податок") : t("затворено");
   return (
     <div className="stack-lg">
       <DetailHero img={b.image_url || b.city_image_url} alt={b.name} seed={b.id + 2} title={b.name}
-                  kicker={<><Link to="/services">Ресторани</Link>, {b.city_name}</>}>
+                  kicker={<><Link to="/services">{t("Ресторани")}</Link>, {b.city_name}</>}>
         <div className="banner-facts">
           {r.cuisine && <span><Icon name="fork" size={16} />{r.cuisine}</span>}
           {r.price_range && <span>{r.price_range}</span>}
-          <span><Icon name="clock" size={16} />Денес: {fmtSpan(r.opening_hours[today])}</span>
+          <span><Icon name="clock" size={16} />{t("Денес:")} {fmtSpan(r.opening_hours[today])}</span>
         </div>
       </DetailHero>
       <div className="detail-grid">
         <div className="stack-lg">
-          {b.description && <section className="panel"><h2>За ресторанот</h2><p style={{ margin: 0 }}>{b.description}</p></section>}
+          {b.description && <section className="panel"><h2>{t("За ресторанот")}</h2><p style={{ margin: 0 }}>{b.description}</p></section>}
           <section className="panel stack">
-            <h2>Мени</h2>
-            {r.menu.length === 0 ? <p className="muted" style={{ margin: 0 }}>Менито не е објавено.</p> : (
+            <h2>{t("Мени")}</h2>
+            {r.menu.length === 0 ? <p className="muted" style={{ margin: 0 }}>{t("Менито не е објавено.")}</p> : (
               <ul className="menu-list">
                 {r.menu.map((m, i) => (
                   <li key={i}>
                     <span><strong>{m.name}</strong>{m.note && <span className="small muted"> {m.note}</span>}</span>
                     <span className="menu-dots" aria-hidden />
-                    <b>{m.price !== null && m.price !== undefined ? eur(m.price) : "по ден"}</b>
+                    <b>{m.price !== null && m.price !== undefined ? eur(m.price) : t("по ден")}</b>
                   </li>
                 ))}
               </ul>
             )}
           </section>
           <section className="panel stack">
-            <h2>Резервирај маса</h2>
+            <h2>{t("Резервирај маса")}</h2>
             <RequestForm b={b} kind="RESTAURANT" capacity={r.max_party_size} />
           </section>
-          <section className="panel"><h2>Рецензии</h2><ReviewsList businessId={b.id} /></section>
+          <section className="panel"><h2>{t("Рецензии")}</h2><ReviewsList businessId={b.id} /></section>
         </div>
         <div className="stack-lg detail-side">
           <ContactCard b={b} extra={
@@ -447,7 +448,7 @@ export function RestaurantDetail() {
             </dl>
           } />
           <MapView points={[{ lat: b.lat, lng: b.lng, label: b.name }]} height={240} />
-          <p className="small muted">Мени, цени и работно време ги внесува ресторанот.</p>
+          <p className="small muted">{t("Мени, цени и работно време ги внесува ресторанот.")}</p>
         </div>
       </div>
     </div>

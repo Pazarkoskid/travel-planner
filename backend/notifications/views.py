@@ -7,6 +7,15 @@ from .models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        from core.i18n import get_lang, tr
+
+        data = super().to_representation(instance)
+        lang = get_lang(self.context.get("request"))
+        if lang == "en":
+            data["title"], data["body"] = tr(data["title"], lang), tr(data["body"], lang)
+        return data
+
     class Meta:
         model = Notification
         fields = ("id", "type", "title", "body", "related_object_type", "related_object_id", "read_at", "created_at")

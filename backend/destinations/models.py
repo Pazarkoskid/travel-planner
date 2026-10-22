@@ -32,6 +32,12 @@ class Place(models.Model):
         FOOD = "FOOD", "Локална храна"
         ACTIVITY = "ACTIVITY", "Активност"
 
+    class Wheelchair(models.TextChoices):
+        YES = "YES", "Пристапно со инвалидска количка"
+        LIMITED = "LIMITED", "Делумно пристапно"
+        NO = "NO", "Непристапно"
+        UNKNOWN = "UNKNOWN", "Пристапноста не е проверена"
+
     class Status(models.TextChoices):
         VERIFIED = "VERIFIED", "Проверено"
         UNVERIFIED = "UNVERIFIED", "Непроверено"
@@ -58,6 +64,9 @@ class Place(models.Model):
     image_url = models.URLField(blank=True, max_length=600)
     image_credit = models.CharField(max_length=300, blank=True, help_text="Автор и лиценца на фотографијата")
     wiki_query = models.CharField(max_length=200, blank=True, help_text="Поим за пребарување слика на Wikipedia")
+    # Пристапност за лица со попреченост (OSM: wheelchair=yes/limited/no).
+    wheelchair = models.CharField(max_length=8, choices=Wheelchair.choices, default=Wheelchair.UNKNOWN)
+    accessibility_notes = models.CharField(max_length=300, blank=True)
 
     class Meta:
         ordering = ["city", "name"]

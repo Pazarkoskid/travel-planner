@@ -6,6 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from core.i18n import get_lang, tr
+
 from .models import Trip
 from .planner import generate_plan
 from .serializers import DaySerializer, RunSerializer, TripDetailSerializer, TripSerializer
@@ -37,7 +39,7 @@ class TripViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         trip = self.get_object()
         generate_plan(trip)
-        return Response(TripDetailSerializer(self.get_queryset().get(pk=trip.pk)).data)
+        return Response(TripDetailSerializer(self.get_queryset().get(pk=trip.pk), context={"request": request}).data)
 
     @action(detail=True, methods=["post"])
     def revise(self, request, pk=None):
@@ -46,12 +48,14 @@ class TripViewSet(viewsets.ModelViewSet):
         if not text:
             raise ValidationError({"instructions": "Опишете ја измената (пр. „поевтино“, „повеќе природа“)."})
         generate_plan(trip, instructions=text[:300])
-        return Response(TripDetailSerializer(self.get_queryset().get(pk=trip.pk)).data)
+        return Response(TripDetailSerializer(self.get_queryset().get(pk=trip.pk), context={"request": request}).data)
 
     @action(detail=True)
     def itinerary(self, request, pk=None):
         trip = self.get_object()
-        return Response({"warnings": trip.warnings, "days": DaySerializer(trip.itinerary_days.all(), many=True).data})
+        lang = get_lang(request)
+        return Response({"warnings": [tr(w, lang) for w in trip.warnings],
+                         "days": DaySerializer(trip.itinerary_days.all(), many=True, context={"request": request}).data})
 
     @action(detail=True, methods=["post", "get"])
     def evaluate(self, request, pk=None):
@@ -65,8 +69,14 @@ class TripViewSet(viewsets.ModelViewSet):
     def export(self, request, pk=None):
         trip = self.get_object()
         fmt = request.query_params.get("format", "csv")
+        if fmt == "pdf":
+            from .pdf import render_trip_pdf
+
+            resp = HttpResponse(render_trip_pdf(trip, get_lang(request)), content_type="application/pdf")
+            resp["Content-Disposition"] = f'attachment; filename="trip-{trip.pk}.pdf"'
+            return resp
         if fmt != "csv":
-            raise ValidationError({"format": "Моментално е поддржан само csv."})
+            raise ValidationError({"format": "Поддржани формати: csv, pdf."})
         resp = HttpResponse(content_type="text/csv; charset=utf-8")
         resp["Content-Disposition"] = f'attachment; filename="trip-{trip.pk}.csv"'
         resp.write("﻿")  # BOM за Excel и кирилица

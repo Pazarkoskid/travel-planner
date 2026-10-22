@@ -45,6 +45,8 @@ class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(is_required_landmark=True)
         if p.get("q"):
             qs = qs.filter(name__icontains=p["q"])
+        if p.get("accessible") == "1":
+            qs = qs.filter(wheelchair__in=[Place.Wheelchair.YES, Place.Wheelchair.LIMITED])
         return qs
 
     def list(self, request, *args, **kwargs):

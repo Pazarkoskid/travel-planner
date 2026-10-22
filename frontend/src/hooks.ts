@@ -1,4 +1,5 @@
 import { DependencyList, useCallback, useEffect, useState } from "react";
+import { lang, t } from "./i18n";
 
 export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList) {
   const [data, setData] = useState<T | null>(null);
@@ -13,7 +14,7 @@ export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList) {
     try {
       setData(await run());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Грешка");
+      setError(e instanceof Error ? e.message : t("Грешка"));
     } finally {
       setLoading(false);
     }
@@ -26,12 +27,16 @@ export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList) {
   return { data, error, loading, reload, setData };
 }
 
-const MONTHS = ["јан", "фев", "мар", "апр", "мај", "јун", "јул", "авг", "сеп", "окт", "ное", "дек"];
-const WEEKDAYS = ["недела", "понеделник", "вторник", "среда", "четврток", "петок", "сабота"];
+const MONTHS = lang === "en"
+  ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  : [t("јан"), t("фев"), t("мар"), t("апр"), t("мај"), t("јун"), t("јул"), t("авг"), t("сеп"), t("окт"), t("ное"), t("дек")];
+const WEEKDAYS = lang === "en"
+  ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  : [t("недела"), t("понеделник"), t("вторник"), t("среда"), t("четврток"), t("петок"), t("сабота")];
 
-/** Датуми на македонски, без зависност од локалните поставки на прелистувачот. */
+/** Датуми на избраниот јазик, без зависност од локалните поставки на прелистувачот. */
 export const fmtDate = (d: string | null | undefined) => {
-  if (!d) return "нема";
+  if (!d) return t("нема");
   const x = new Date(d.length === 10 ? `${d}T12:00:00` : d);
   return `${x.getDate()} ${MONTHS[x.getMonth()]} ${x.getFullYear()}`;
 };
@@ -42,7 +47,7 @@ export const fmtDay = (d: string) => {
 };
 
 export const fmtDateTime = (d: string | null | undefined) => {
-  if (!d) return "нема";
+  if (!d) return t("нема");
   const x = new Date(d);
   const hm = `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
   return `${x.getDate()} ${MONTHS[x.getMonth()]}, ${hm}`;
@@ -51,7 +56,7 @@ export const fmtDateTime = (d: string | null | undefined) => {
 export const hhmm = (t: string) => t.slice(0, 5);
 
 export const eur = (v: string | number | null | undefined) =>
-  v === null || v === undefined || v === "" ? "непознато" : `${Number(v).toFixed(2)} €`;
+  v === null || v === undefined || v === "" ? t("непознато") : `${Number(v).toFixed(2)} €`;
 
 export const isoDate = (offsetDays = 0) => {
   const d = new Date();

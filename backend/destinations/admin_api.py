@@ -21,7 +21,8 @@ class PlaceAdminSerializer(serializers.ModelSerializer):
         model = Place
         fields = ("id", "city", "city_name", "name", "slug", "category", "description", "lat", "lng",
                   "visit_duration_min", "price_eur", "opening_time", "closing_time", "source", "verified_at",
-                  "status", "is_required_landmark", "checkin_radius_m", "image_url", "image_credit", "wiki_query")
+                  "status", "is_required_landmark", "checkin_radius_m", "image_url", "image_credit", "wiki_query",
+                  "wheelchair", "accessibility_notes")
 
     def validate(self, attrs):
         get = lambda k: attrs.get(k, getattr(self.instance, k, None))  # noqa: E731

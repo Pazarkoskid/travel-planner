@@ -47,7 +47,12 @@ export interface Place {
   badge_holders: number | null;
   image_url: string;
   image_credit: string;
+  wheelchair: Wheelchair;
+  wheelchair_label: string;
+  accessibility_notes: string;
 }
+
+export type Wheelchair = "YES" | "LIMITED" | "NO" | "UNKNOWN";
 
 export interface ItineraryItem {
   id: number;
@@ -66,6 +71,8 @@ export interface ItineraryItem {
   lng: number | null;
   category: string | null;
   image_url: string;
+  wheelchair: Wheelchair | null;
+  accessibility_notes: string;
 }
 
 export interface PlanRun {
@@ -92,6 +99,7 @@ export interface Trip {
   interests: string[];
   pace: string;
   transport: string;
+  mobility: "standard" | "reduced" | "wheelchair";
   warnings: string[];
   status: string;
   modifiers: { active?: string[]; last_instruction?: string };

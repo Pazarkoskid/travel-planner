@@ -185,6 +185,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.exceptions.api_exception_handler",
     # ?format= го користиме за извоз (csv), не за избор на renderer.
     "URL_FORMAT_OVERRIDE": None,
+    "DEFAULT_RENDERER_CLASSES": ("core.renderers.LangJSONRenderer", "rest_framework.renderers.BrowsableAPIRenderer"),
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",

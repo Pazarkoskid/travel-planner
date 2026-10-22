@@ -91,6 +91,9 @@ class Command(BaseCommand):
                           "is_required_landmark": r["is_required_landmark"] == "1", "description": r["description"],
                           "wiki_query": r.get("wiki_query", ""),
                           "source": SOURCE, "status": Place.Status.VERIFIED})
+        from destinations import accessibility_data
+
+        accessibility_data.apply(Place)
         self.stdout.write(f"Места: {len(rows)}")
 
         users = {}

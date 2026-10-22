@@ -19,6 +19,15 @@ from .models import Badge, CityAchievement, PhotoCheckIn, PlacePhoto, PlaceRepor
 class BadgeSerializer(serializers.ModelSerializer):
     holders_count = serializers.IntegerField(read_only=True, default=None)
 
+    def to_representation(self, instance):
+        from core.i18n import get_lang, tr
+
+        data = super().to_representation(instance)
+        lang = get_lang(self.context.get("request"))
+        if lang == "en":
+            data["name"], data["description"] = tr(data["name"], lang), tr(data["description"], lang)
+        return data
+
     class Meta:
         model = Badge
         fields = ("id", "code", "name", "description", "kind", "level", "place", "city", "icon", "art", "available",
@@ -96,7 +105,7 @@ def create_checkin(request, pk):
     ach = CityAchievement.objects.filter(user=request.user, city=place.city).first()
     return Response({
         "checkin": CheckInSerializer(checkin, context={"request": request}).data,
-        "unlocked_badges": BadgeSerializer(unlocked, many=True).data,
+        "unlocked_badges": BadgeSerializer(unlocked, many=True, context={"request": request}).data,
         "city_progress": AchievementSerializer(ach).data if ach else None,
     }, status=201)
 
@@ -123,7 +132,7 @@ def badges(request):
         qs = qs.filter(kind__in=request.query_params["kind"].upper().split(","))
     if request.query_params.get("city"):
         qs = qs.filter(city__slug=request.query_params["city"])
-    return Response(BadgeSerializer(qs, many=True).data)
+    return Response(BadgeSerializer(qs, many=True, context={"request": request}).data)
 
 
 @api_view(["GET"])
@@ -140,7 +149,7 @@ def my_gamification(request):
             "city": city.id, "city_name": city.name, "city_slug": city.slug, "documented_required": 0,
             "required_total": total, "documented_any": 0, "percent": 0.0, "updated_at": None})
     return Response({
-        "badges": UserBadgeSerializer(UserBadge.objects.filter(user=u).select_related("badge"), many=True).data,
+        "badges": UserBadgeSerializer(UserBadge.objects.filter(user=u).select_related("badge"), many=True, context={"request": request}).data,
         "city_progress": progress,
         "checkins": CheckInSerializer(PhotoCheckIn.objects.filter(user=u).select_related("place")[:100], many=True,
                                       context={"request": request}).data,
@@ -163,7 +172,7 @@ def public_profile(request, username):
     return Response({
         "username": u.username, "first_name": u.first_name, "last_name": u.last_name, "bio": u.bio,
         "avatar": request.build_absolute_uri(u.avatar.url) if u.avatar else None,
-        "badges": UserBadgeSerializer(history, many=True).data,
+        "badges": UserBadgeSerializer(history, many=True, context={"request": request}).data,
         "city_progress": AchievementSerializer(CityAchievement.objects.filter(user=u).select_related("city"),
                                                many=True).data,
         "photos": PhotoSerializer(photos.select_related("place", "checkin", "user")[:60], many=True,
@@ -224,7 +233,7 @@ def admin_review_checkin(request, pk):
     c, unlocked = services.review_checkin(pk, request.user, approve, str(request.data.get("note", "")))
     audit(request.user, f"checkin.{request.data['action']}", c)
     return Response({"checkin": CheckInSerializer(c, context={"request": request}).data,
-                     "unlocked_badges": BadgeSerializer(unlocked, many=True).data})
+                     "unlocked_badges": BadgeSerializer(unlocked, many=True, context={"request": request}).data})
 
 
 @api_view(["GET"])

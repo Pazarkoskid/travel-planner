@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 BASE = "https://api.openweathermap.org/data/2.5"
 
 
-def _get(path, lat, lng):
-    params = {"lat": f"{lat:.4f}", "lon": f"{lng:.4f}", "units": "metric", "lang": "mk",
+def _get(path, lat, lng, lang="mk"):
+    params = {"lat": f"{lat:.4f}", "lon": f"{lng:.4f}", "units": "metric", "lang": lang,
               "appid": settings.OPENWEATHER_API_KEY}
     url = f"{BASE}/{path}?{urllib.parse.urlencode(params)}"
     with urllib.request.urlopen(url, timeout=settings.WEATHER_TIMEOUT_SECONDS) as resp:
@@ -54,18 +54,18 @@ def _summarize_daily(forecast):
     return out[:6]
 
 
-def get_weather(lat, lng):
+def get_weather(lat, lng, lang="mk"):
     if not settings.OPENWEATHER_API_KEY:
         searched = ", ".join(str(p) for p in (settings.BASE_DIR.parent / ".env", settings.BASE_DIR / ".env"))
         raise ServiceError(f"Прогнозата не е конфигурирана: нема OPENWEATHER_API_KEY. Се бара во: {searched}",
                            code="weather_not_configured", status_code=503)
-    key = f"weather:{round(lat, 2)}:{round(lng, 2)}"
+    key = f"weather:{lang}:{round(lat, 2)}:{round(lng, 2)}"
     cached = cache.get(key)
     if cached:
         return cached
     try:
-        current = _get("weather", lat, lng)
-        forecast = _get("forecast", lat, lng)
+        current = _get("weather", lat, lng, lang)
+        forecast = _get("forecast", lat, lng, lang)
     except urllib.error.HTTPError as exc:
         logger.warning("OpenWeather HTTP error: %s", exc)
         if exc.code == 401:

@@ -48,6 +48,9 @@ services:
         value: media
       - key: OPENWEATHER_API_KEY
         sync: false
+      # https://<frontend>.onrender.com — за QR-кодот во PDF-от
+      - key: FRONTEND_URL
+        sync: false
       - key: LLM_PROVIDER
         value: none
 

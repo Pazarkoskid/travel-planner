@@ -17,6 +17,7 @@ import AdminPanel from "./pages/Admin";
 import Credits from "./pages/Credits";
 import BadgesPage from "./pages/Badges";
 import FriendsPage from "./pages/Friends";
+import MapPage from "./pages/MapPage";
 import { AccommodationDetail, BoatTourDetail, RestaurantDetail, TaxiDetail } from "./pages/Listings";
 import { BusinessEditPage, NewBusinessPage } from "./pages/BusinessEdit";
 import "@fontsource/onest/400.css";
@@ -62,6 +63,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="u/:username" element={<PublicProfilePage />} />
             <Route path="credits" element={<Credits />} />
             <Route path="badges" element={<BadgesPage />} />
+            <Route path="map" element={<MapPage />} />
             <Route path="trips" element={<Protected><TripList /></Protected>} />
             <Route path="trips/new" element={<Protected><TripNew /></Protected>} />
             <Route path="trips/:id" element={<Protected><TripDetail /></Protected>} />

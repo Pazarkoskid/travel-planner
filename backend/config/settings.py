@@ -237,6 +237,12 @@ OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 WEATHER_CACHE_SECONDS = int(os.environ.get("WEATHER_CACHE_SECONDS", "1800"))
 WEATHER_TIMEOUT_SECONDS = int(os.environ.get("WEATHER_TIMEOUT_SECONDS", "8"))
 
+# --- Корисни објекти на мапа (OpenStreetMap / Overpass) -----------------
+OVERPASS_URL = os.environ.get("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
+OVERPASS_TIMEOUT_SECONDS = int(os.environ.get("OVERPASS_TIMEOUT_SECONDS", "30"))
+AMENITIES_CACHE_SECONDS = int(os.environ.get("AMENITIES_CACHE_SECONDS", str(12 * 3600)))
+AMENITIES_RADIUS_M = int(os.environ.get("AMENITIES_RADIUS_M", "3000"))
+
 # --- Гејмификација ----------------------------------------------------
 CHECKIN_DEFAULT_RADIUS_M = int(os.environ.get("CHECKIN_DEFAULT_RADIUS_M", "300"))
 MACEDONIA_EXPLORER_MIN_CITIES = int(os.environ.get("MACEDONIA_EXPLORER_MIN_CITIES", "3"))

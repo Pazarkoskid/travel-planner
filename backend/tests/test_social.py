@@ -130,3 +130,4 @@ def test_photo_likes(tourist, other_tourist, places, settings, tmp_path):
     photo.is_public = False
     photo.save()
     assert c.post(f"/api/v1/photos/{photo.pk}/like/").status_code == 404  # приватна фотографија
+

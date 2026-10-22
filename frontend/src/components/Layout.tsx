@@ -57,6 +57,7 @@ export default function Layout() {
             <NavLink to="/stay" className={link}>{t("Сместување")}</NavLink>
             <NavLink to="/boat-tours" className={link}>{t("Бродски тури")}</NavLink>
             <NavLink to="/services" className={link}>{t("Ресторани и такси")}</NavLink>
+            <NavLink to="/map" className={link}>{t("Мапа")}</NavLink>
           </nav>
 
           <div className="nav-end">
@@ -99,6 +100,7 @@ export default function Layout() {
             <NavLink to="/stay" className="sheet-link"><Icon name="bed" />{t("Сместување")}</NavLink>
             <NavLink to="/boat-tours" className="sheet-link"><Icon name="boat" />{t("Бродски тури")}</NavLink>
             <NavLink to="/services" className="sheet-link"><Icon name="fork" />{t("Ресторани и такси")}</NavLink>
+            <NavLink to="/map" className="sheet-link"><Icon name="map" />{t("Мапа")}</NavLink>
             <NavLink to="/badges" className="sheet-link"><Icon name="star" />{t("Беџови и колекција")}</NavLink>
             <InstallLink />
             {user ? (
@@ -146,6 +148,7 @@ export default function Layout() {
               <NavLink to="/stay">{t("Сместување")}</NavLink>
               <NavLink to="/boat-tours">{t("Бродски тури")}</NavLink>
               <NavLink to="/services">{t("Ресторани и такси")}</NavLink>
+              <NavLink to="/map">{t("Мапа")}</NavLink>
               <NavLink to="/badges">{t("Беџови и колекција")}</NavLink>
             </div>
             <div>
@@ -172,7 +175,7 @@ export default function Layout() {
 
       <nav className="tabbar" aria-label={t("Брза навигација")}>
         <NavLink to="/" end className={tab}><Icon name="home" /><span>{t("Почетна")}</span></NavLink>
-        <NavLink to="/places" className={tab}><Icon name="pin" /><span>{t("Места")}</span></NavLink>
+        <NavLink to="/map" className={tab}><Icon name="map" /><span>{t("Мапа")}</span></NavLink>
         <NavLink to={user ? "/trips" : "/trips/new"} className={tab}><Icon name="route" /><span>{t("Патувања")}</span></NavLink>
         {user ? (
           <>

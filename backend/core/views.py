@@ -89,3 +89,20 @@ def weather(request):
     if lang == "en":
         label = CITY_EN.get(label, label)
     return Response({"location": label, **get_weather(lat, lng, lang)})
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def amenities(request):
+    """GET /amenities/?city=<id|slug> — пекари, маркети, менувачници, трафики, банкомати, аптеки (OSM)."""
+    from destinations.models import City
+
+    from .amenities import get_amenities
+
+    ref = str(request.query_params.get("city", "")).strip()
+    if not ref:
+        raise ServiceError("Потребен е град (city).", code="city_required")
+    city = City.objects.filter(pk=ref).first() if ref.isdigit() else City.objects.filter(slug=ref).first()
+    if not city:
+        raise ServiceError("Градот не постои.", code="not_found", status_code=404)
+    return Response(get_amenities(city))

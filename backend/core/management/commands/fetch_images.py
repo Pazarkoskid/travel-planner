@@ -3,14 +3,17 @@
     python manage.py fetch_images            # само каде што нема слика
     python manage.py fetch_images --force    # ги заменува постоечките
 
-За секое место се пребарува англиската Wikipedia (поле wiki_query), се зема главната
-слободна слика на статијата (pilicense=free), па од Commons се читаат URL со ширина
-1600px, авторот и лиценцата. Авторот и лиценцата се зачувуваат во image_credit и се
+За секое место се пребарува англиската Wikipedia (поле wiki_query), потоа македонската
+(име на местото), па Commons директно. Се зема слободна слика (pilicense=free), а од Commons
+URL со стандардна ширина 1280px (Wikimedia ограничува нестандардни ширини), авторот и лиценцата.
+Меѓу барањата има пауза, а при HTTP 429 се чека и се пробува повторно. Авторот и лиценцата се зачувуваат во image_credit и се
 прикажуваат под фотографијата во апликацијата.
 """
 import html
 import json
 import re
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -20,25 +23,36 @@ from destinations.models import City, Place
 
 USER_AGENT = "TravelPlannerMK/1.0 (diploma prototype; https://github.com/pazarkoskid)"
 WIKI_API = "https://en.wikipedia.org/w/api.php"
+MK_WIKI_API = "https://mk.wikipedia.org/w/api.php"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 SKIP = re.compile(r"(\.svg$|map|locator|flag|coat_of_arms|logo|location)", re.I)
-WIDTH = 1600
+WIDTH = 1280  # стандардна ширина; нестандардните (пр. 1600) Wikimedia ги ограничува
+OLD_WIDTHS = re.compile(r"/(1600)px-")  # линкови од постарата верзија → се преземаат наново
+PAUSE = 0.4
 
 
-def get_json(url, params, timeout=15):
+def get_json(url, params, timeout=15, attempts=4):
     full = f"{url}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(full, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode())
+    for attempt in range(attempts):
+        try:
+            time.sleep(PAUSE)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as exc:
+            if exc.code in (429, 503) and attempt < attempts - 1:
+                wait = int(exc.headers.get("Retry-After") or 0) or 2 ** (attempt + 1)
+                time.sleep(min(wait, 30))
+                continue
+            raise
 
 
 def strip_tags(value):
     return html.unescape(re.sub(r"<[^>]+>", "", value or "")).strip()
 
 
-def find_file(query):
-    """Враќа име на датотека (без 'File:') од најдобрата Wikipedia статија за поимот."""
-    data = get_json(WIKI_API, {
+def _search_pageimage(api, query):
+    data = get_json(api, {
         "action": "query", "format": "json", "formatversion": 2, "generator": "search",
         "gsrsearch": query, "gsrlimit": 3, "prop": "pageimages", "piprop": "name", "pilicense": "free",
     })
@@ -48,6 +62,25 @@ def find_file(query):
         if name and not SKIP.search(name):
             return name
     return None
+
+
+def _search_commons(query):
+    data = get_json(COMMONS_API, {
+        "action": "query", "format": "json", "formatversion": 2, "list": "search", "srsearch": f"{query} filetype:bitmap",
+        "srnamespace": 6, "srlimit": 5,
+    })
+    for hit in data.get("query", {}).get("search", []):
+        name = hit["title"].split(":", 1)[-1]
+        if not SKIP.search(name):
+            return name
+    return None
+
+
+def find_file(query, mk_query=None):
+    """Име на датотека (без 'File:'): en.wikipedia → mk.wikipedia → Commons."""
+    return (_search_pageimage(WIKI_API, query)
+            or (mk_query and _search_pageimage(MK_WIKI_API, mk_query))
+            or _search_commons(query))
 
 
 def file_info(filename):
@@ -79,12 +112,13 @@ class Command(BaseCommand):
         objects = list(City.objects.all()) + list(Place.objects.select_related("city"))
         ok = skipped = failed = 0
         for obj in objects:
-            if obj.image_url and not opts["force"]:
+            if obj.image_url and not opts["force"] and not OLD_WIDTHS.search(obj.image_url):
                 skipped += 1
                 continue
             query = obj.wiki_query or (f"{obj.name} {obj.city.name}" if isinstance(obj, Place) else obj.name)
+            mk_query = f"{obj.name} {obj.city.name}" if isinstance(obj, Place) else obj.name
             try:
-                filename = find_file(query)
+                filename = find_file(query, mk_query)
                 url, credit = file_info(filename) if filename else (None, None)
             except Exception as exc:  # мрежа, timeout, променет API
                 self.stderr.write(f"  {obj}: грешка ({exc})")

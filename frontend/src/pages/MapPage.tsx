@@ -46,7 +46,15 @@ const fmtKm = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed
 
 function Controller({ center, focus, me }: { center: [number, number]; focus: Amenity | null; me: [number, number] | null }) {
   const map = useMap();
-  useEffect(() => { map.setView(center, 15); }, [map, center]);
+  useEffect(() => {
+    // картата се појавува во анимација / менува големина → Leaflet мора да ја пресмета повторно
+    const fix = () => map.invalidateSize();
+    const timers = [100, 400, 1000].map((ms) => window.setTimeout(fix, ms));
+    const ro = new ResizeObserver(fix);
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  useEffect(() => { map.setView(center, 15); }, [map, center[0], center[1]]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (focus) map.flyTo([focus.lat, focus.lng], Math.max(map.getZoom(), 17), { duration: 0.6 }); }, [map, focus]);
   useEffect(() => { if (me) map.flyTo(me, 16, { duration: 0.6 }); }, [map, me]);
   return null;
@@ -164,7 +172,7 @@ export default function MapPage() {
         <div className="map-canvas">
           <MapContainer center={center} zoom={15} style={{ height: "100%", width: "100%" }} preferCanvas>
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                       url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" crossOrigin="" />
             <Controller center={center} focus={focus} me={me} />
             {me && <CircleMarker center={me} radius={9} pathOptions={{ color: "#fff", weight: 3, fillColor: "#2b6cf0", fillOpacity: 1 }}><Popup>{t("Вие сте тука")}</Popup></CircleMarker>}
             {shown.map((a) => (

@@ -27,7 +27,7 @@ export default function MapView({ points, route = false, height = 380 }: { point
       <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" crossOrigin=""
         />
         <FitBounds points={points} />
         {route && points.length > 1 && (

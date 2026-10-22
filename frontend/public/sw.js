@@ -7,15 +7,16 @@
  *  - фотографии (Wikimedia, Supabase) и OSM плочки: кеш со ограничен број записи
  *  - POST/PATCH/DELETE: секогаш мрежа (резервации, check-in не смеат да се „лажат“ офлајн)
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `tpm-shell-${VERSION}`;
 const STATIC = `tpm-static-${VERSION}`;
 const API = "tpm-api";
-const MEDIA = "tpm-media";
+const MEDIA = `tpm-media-${VERSION}`; // нова верзија ги брише старите (и погрешно зачуваните) плочки
 const SHELL_FILES = ["/", "/index.html", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png", "/icon-512.png"];
 const LIMITS = { [MEDIA]: 250, [API]: 150 };
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting(); // новата верзија веднаш ја заменува старата
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)));
 });
 
@@ -40,11 +41,11 @@ async function trim(cacheName) {
   for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]);
 }
 
-async function cacheFirst(request, cacheName) {
+async function cacheFirst(request, cacheName, allowOpaque = true) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok || response.type === "opaque") {
+  if (response.ok || (allowOpaque && response.type === "opaque")) {
     const cache = await caches.open(cacheName);
     cache.put(request, response.clone()).then(() => trim(cacheName));
   }
@@ -86,7 +87,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request, STATIC));
     return;
   }
-  if (/(^|\.)(wikimedia\.org|tile\.openstreetmap\.org|supabase\.co|openweathermap\.org)$/.test(url.hostname)) {
+  if (/(^|\.)tile\.openstreetmap\.org$/.test(url.hostname)) {
+    // плочките се бараат со CORS → се зачувуваат само успешните (не грешка 403/429 засекогаш)
+    event.respondWith(cacheFirst(request, MEDIA, false).catch(() => fetch(request)));
+    return;
+  }
+  if (/(^|\.)(wikimedia\.org|supabase\.co|openweathermap\.org)$/.test(url.hostname)) {
     event.respondWith(cacheFirst(request, MEDIA));
   }
 });

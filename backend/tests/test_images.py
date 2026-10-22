@@ -2,7 +2,9 @@ import io
 import urllib.error
 from unittest import mock
 
+import pytest
 from django.core.management import call_command
+from PIL import Image
 
 from core.management.commands import fetch_images
 from destinations.models import Place
@@ -13,6 +15,28 @@ INFO = {"query": {"pages": [{"imageinfo": [{
     "extmetadata": {"Artist": {"value": "<a href='x'>Jane Doe</a>"}, "LicenseShortName": {"value": "CC BY-SA 4.0"}},
 }]}]}}
 EMPTY = {"query": {"pages": [], "search": []}}
+
+
+def jpeg_bytes(w=2400, h=1600):
+    buf = io.BytesIO()
+    Image.new("RGB", (w, h), (30, 120, 160)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+@pytest.fixture(autouse=True)
+def local_media(settings, tmp_path, monkeypatch):
+    """Сликите се зачувуваат во привремена папка; преземањето е симулирано."""
+    settings.MEDIA_ROOT = tmp_path
+    settings.DEBUG = True  # локален развој → зачувување во media/
+    monkeypatch.setattr(fetch_images, "PAUSE", 0)
+    downloaded = []
+
+    def fake_download(url, timeout=30):
+        downloaded.append(url)
+        return jpeg_bytes()
+
+    monkeypatch.setattr(fetch_images, "download", fake_download)
+    return downloaded
 
 
 def fake_get_json(url, params, timeout=15):
@@ -33,7 +57,7 @@ def test_fetch_images_sets_url_and_credit_and_skips_maps(places):
     with mock.patch.object(fetch_images, "get_json", side_effect=fake_get_json):
         call_command("fetch_images")
     kaneo = Place.objects.get(slug="kaneo")
-    assert kaneo.image_url == THUMB  # стандардна ширина 1280px
+    assert kaneo.image_url.startswith("/media/photos/places/ohrid/kaneo")  # зачувана кај нас, не линк
     assert kaneo.image_credit == "Фото: Jane Doe, CC BY-SA 4.0, Wikimedia Commons"
     assert Place.objects.get(slug="sv-naum").image_url == ""
 
@@ -53,18 +77,42 @@ def test_falls_back_to_mk_wikipedia_then_commons(places):
 
     with mock.patch.object(fetch_images, "get_json", side_effect=fake):
         call_command("fetch_images")
-    assert Place.objects.get(slug="kaneo").image_url == THUMB
+    assert Place.objects.get(slug="kaneo").image_url.startswith("/media/photos/")
     assert any("mk.wikipedia" in c for c in calls)
 
 
-def test_old_1600px_links_are_refetched(places):
+def test_existing_wikimedia_links_are_moved_to_our_storage(places, local_media, settings):
     p = places["kaneo"]
     p.image_url = "https://upload.wikimedia.org/thumb/x.jpg/1600px-x.jpg"
+    p.image_credit = "Фото: Jane Doe, CC BY-SA 4.0, Wikimedia Commons"
     p.save()
-    with mock.patch.object(fetch_images, "get_json", side_effect=fake_get_json):
+    with mock.patch.object(fetch_images, "get_json", side_effect=AssertionError("не смее да пребарува")):
         call_command("fetch_images")
     p.refresh_from_db()
-    assert p.image_url == THUMB
+    assert p.image_url.startswith("/media/photos/places/ohrid/kaneo")
+    assert p.image_credit.startswith("Фото: Jane Doe")  # авторот и лиценцата остануваат
+    assert local_media == ["https://upload.wikimedia.org/thumb/x.jpg/1280px-x.jpg"]  # стандардна ширина
+    with Image.open(settings.MEDIA_ROOT / p.image_url.removeprefix("/media/")) as im:
+        assert max(im.size) <= 1600  # намалена
+
+
+def test_download_falls_back_to_960(monkeypatch):
+    monkeypatch.undo()  # вистинска download функција
+    monkeypatch.setattr(fetch_images, "PAUSE", 0)
+    monkeypatch.setattr(fetch_images.time, "sleep", lambda s: None)
+    calls = []
+
+    def fake_urlopen(req, timeout=30):
+        calls.append(req.full_url)
+        if "/1280px-" in req.full_url:
+            raise urllib.error.HTTPError(req.full_url, 403, "Forbidden", {}, None)
+        ok = mock.MagicMock()
+        ok.__enter__.return_value = io.BytesIO(b"img")
+        return ok
+
+    monkeypatch.setattr(fetch_images.urllib.request, "urlopen", fake_urlopen)
+    assert fetch_images.download("https://upload.wikimedia.org/t/a.jpg/1280px-a.jpg") == b"img"
+    assert calls[-1].endswith("/960px-a.jpg")
 
 
 def test_retries_on_429(monkeypatch):
@@ -81,3 +129,10 @@ def test_fetch_images_survives_network_errors(places):
     with mock.patch.object(fetch_images, "get_json", side_effect=TimeoutError):
         call_command("fetch_images")
     assert not Place.objects.exclude(image_url="").exists()
+
+
+def test_without_supabase_in_production_keeps_links(places, settings):
+    settings.DEBUG, settings.SUPABASE_S3_ENDPOINT = False, ""
+    with mock.patch.object(fetch_images, "get_json", side_effect=fake_get_json):
+        call_command("fetch_images")
+    assert Place.objects.get(slug="kaneo").image_url == THUMB  # линк, не локален фајл

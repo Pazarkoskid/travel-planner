@@ -23,7 +23,7 @@ export default function Photo({ src, alt, credit, seed = 0, className = "", eage
   return (
     <div className={`photo-box ${className}`} style={ok ? undefined : { background: `linear-gradient(150deg, ${a}, ${b})` }}>
       {ok ? (
-        <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} title={credit || undefined} />
+        <img src={src} alt={alt} loading={eager ? "eager" : "lazy"} referrerPolicy="no-referrer" onError={() => setFailed(true)} title={credit || undefined} />
       ) : (
         <svg className="photo-fallback" viewBox="0 0 200 120" aria-hidden preserveAspectRatio="xMidYMax slice">
           <path d="M0 90 L45 52 L70 72 L110 30 L150 70 L170 58 L200 80 V120 H0Z" fill="rgba(255,255,255,0.14)" />

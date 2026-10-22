@@ -239,7 +239,10 @@ WEATHER_TIMEOUT_SECONDS = int(os.environ.get("WEATHER_TIMEOUT_SECONDS", "8"))
 
 # --- Корисни објекти на мапа (OpenStreetMap / Overpass) -----------------
 OVERPASS_URL = os.environ.get("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
-OVERPASS_TIMEOUT_SECONDS = int(os.environ.get("OVERPASS_TIMEOUT_SECONDS", "30"))
+OVERPASS_TIMEOUT_SECONDS = int(os.environ.get("OVERPASS_TIMEOUT_SECONDS", "15"))
+OVERPASS_FALLBACK_URLS = [u for u in os.environ.get("OVERPASS_FALLBACK_URLS", (
+    "https://overpass.private.coffee/api/interpreter,"
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter")).split(",") if u]
 AMENITIES_CACHE_SECONDS = int(os.environ.get("AMENITIES_CACHE_SECONDS", str(12 * 3600)))
 AMENITIES_RADIUS_M = int(os.environ.get("AMENITIES_RADIUS_M", "3000"))
 

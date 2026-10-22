@@ -4,6 +4,7 @@ import type { CircleMarker as LCircleMarker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, unwrap } from "../services/api";
+import { fetchAmenitiesDirect } from "../services/osm";
 import { useAsync } from "../hooks";
 import { t } from "../i18n";
 import { ErrorBox, Loading } from "../components/ui";
@@ -56,7 +57,17 @@ export default function MapPage() {
   const citySlug = params.get("city") || "ohrid";
   const { data: cities } = useAsync(() => api<City[]>("/cities/"), []);
   const city = cities?.find((c) => c.slug === citySlug);
-  const amen = useAsync(() => api<{ items: Amenity[]; stale: boolean; source: string }>(`/amenities/?city=${citySlug}`), [citySlug]);
+  const amen = useAsync(async () => {
+    try {
+      return await api<{ items: Amenity[]; stale: boolean }>(`/amenities/?city=${citySlug}`);
+    } catch (err) {
+      // backend-от не добил одговор од OSM → прелистувачот прашува директно
+      const c = (cities || await api<City[]>("/cities/")).find((x) => x.slug === citySlug);
+      if (!c) throw err;
+      try { return (await fetchAmenitiesDirect(c.center_lat, c.center_lng)) as { items: Amenity[]; stale: boolean }; }
+      catch { throw new Error(t("Податоците од OpenStreetMap моментално не се достапни. Обидете се повторно.")); }
+    }
+  }, [citySlug]);
   const landmarks = useAsync(async () => unwrap(await api<Place[] | { results: Place[] }>(`/places/?city=${citySlug}`)), [citySlug]);
 
   const [active, setActive] = useState<Set<Cat>>(() => new Set(CATS.filter((c) => c.on).map((c) => c.key)));

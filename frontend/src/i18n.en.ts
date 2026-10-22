@@ -1,6 +1,7 @@
 // Англиски речник. Клуч = македонскиот текст од интерфејсот (види i18n.ts).
 // Нов текст: додај го тука; непреведен текст останува на македонски.
 const EN: Record<string, string> = {
+  "Податоците од OpenStreetMap моментално не се достапни. Обидете се повторно.": "OpenStreetMap data is currently unavailable. Please try again.",
   "Пекари": "Bakeries",
   "Маркети": "Markets",
   "Менувачници": "Currency exchange",

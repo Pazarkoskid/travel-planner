@@ -16,11 +16,29 @@ OVERPASS = {"elements": [
 ]}
 
 
-def test_query_contains_all_categories():
-    q = amenities.build_query(41.1, 20.8, 3000, list(amenities.CATEGORIES))
-    for cond in ('"shop"="bakery"', '"shop"="supermarket"', '"amenity"="bureau_de_change"', '"shop"="kiosk"', '"amenity"="atm"'):
-        assert cond in q
-    assert "around:3000,41.10000,20.80000" in q and "out center" in q
+def test_query_is_light_and_covers_categories():
+    q = amenities.build_query(41.1, 20.8, 3000)
+    for word in ("bakery", "supermarket", "bureau_de_change", "kiosk", "atm", "pharmacy"):
+        assert word in q
+    assert "around:3000,41.10000,20.80000" in q and "out center" in q and q.count("nwr[") == 2
+
+
+def test_fetch_falls_back_to_next_mirror(settings):
+    settings.OVERPASS_URL = "https://a/api"
+    settings.OVERPASS_FALLBACK_URLS = ["https://b/api"]
+    calls = []
+
+    def fake_urlopen(req, timeout=15):
+        calls.append(req.full_url)
+        if req.full_url == "https://a/api":
+            raise TimeoutError("busy")
+        ok = mock.MagicMock()
+        ok.__enter__.return_value.read.return_value = b'{"elements": []}'
+        return ok
+
+    with mock.patch.object(amenities.urllib.request, "urlopen", side_effect=fake_urlopen):
+        assert amenities._fetch("q") == {"elements": []}
+    assert calls == ["https://a/api", "https://b/api"]
 
 
 def test_amenities_api_parses_and_caches(city):

@@ -46,20 +46,40 @@ def _category(tags):
     return None
 
 
-def build_query(lat, lng, radius_m, categories):
-    parts = []
-    for cat in categories:
-        for cond in CATEGORIES[cat]:
-            for kind in ("node", "way"):
-                parts.append(f"{kind}{cond}(around:{radius_m},{lat:.5f},{lng:.5f});")
-    return f"[out:json][timeout:25];({''.join(parts)});out center tags 400;"
+SHOP_RE = "^(bakery|pastry|supermarket|convenience|greengrocer|kiosk|newsagent|tobacco)$"
+AMENITY_RE = "^(marketplace|bureau_de_change|atm|pharmacy)$"
+
+
+def build_query(lat, lng, radius_m, categories=None):
+    """Едно лесно барање со регуларни изрази наместо 30 посебни услови."""
+    around = f"(around:{radius_m},{lat:.5f},{lng:.5f})"
+    return (f'[out:json][timeout:20];(nwr["shop"~"{SHOP_RE}"]{around};'
+            f'nwr["amenity"~"{AMENITY_RE}"]{around};);out center tags 500;')
+
+
+def _endpoints():
+    urls = [settings.OVERPASS_URL, *getattr(settings, "OVERPASS_FALLBACK_URLS", [])]
+    return list(dict.fromkeys(u for u in urls if u))
 
 
 def _fetch(query):
+    """Пробува повеќе јавни Overpass сервери по ред; враќа првиот успешен одговор."""
     data = urllib.parse.urlencode({"data": query}).encode()
-    req = urllib.request.Request(settings.OVERPASS_URL, data=data, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=settings.OVERPASS_TIMEOUT_SECONDS) as resp:
-        return json.loads(resp.read().decode())
+    errors = []
+    for url in _endpoints():
+        req = urllib.request.Request(url, data=data, headers={
+            "User-Agent": UA, "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded"})
+        try:
+            with urllib.request.urlopen(req, timeout=settings.OVERPASS_TIMEOUT_SECONDS) as resp:
+                payload = json.loads(resp.read().decode())
+            if "elements" not in payload:
+                raise ValueError(payload.get("remark", "no elements"))
+            return payload
+        except Exception as exc:
+            logger.warning("Overpass %s failed: %s", url, exc)
+            errors.append(f"{url}: {exc}")
+    raise ConnectionError("; ".join(errors) or "no Overpass endpoint")
 
 
 def parse(payload):
@@ -98,7 +118,7 @@ def get_amenities(city, radius_m=None):
     cached = cache.get(key)
     if cached is not None:
         return cached
-    query = build_query(city.center_lat, city.center_lng, radius_m, list(CATEGORIES))
+    query = build_query(city.center_lat, city.center_lng, radius_m)
     try:
         items = parse(_fetch(query))
     except Exception as exc:  # мрежа, timeout, 429 од Overpass

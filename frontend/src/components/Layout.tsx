@@ -45,7 +45,7 @@ export default function Layout() {
 
   return (
     <div className="app">
-      <header className={`topbar ${isHome && !scrolled && !open ? "topbar-over" : ""}`}>
+      <header className={`topbar ${isHome && !scrolled && !open ? "topbar-over" : ""} ${scrolled ? "topbar-scrolled" : ""}`}>
         <div className="container topbar-inner">
           <NavLink to="/" className="brand">
             <img src="/favicon.svg" width={34} height={34} alt="" />
@@ -123,7 +123,7 @@ export default function Layout() {
       )}
 
       <main className={isHome ? "main main-home" : "container main"}>
-        <Outlet />
+        <div key={loc.pathname} className="page-enter"><Outlet /></div>
       </main>
 
       <footer className="footer">

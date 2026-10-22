@@ -10,6 +10,7 @@ import Icon from "../components/Icon";
 import WeatherCard from "../components/Weather";
 import PhotoImg from "../components/Photo";
 import LikeButton from "../components/LikeButton";
+import { celebrate } from "../motion";
 import type { Badge, City, CityProgress, CheckIn, Photo, Place } from "../types";
 
 export function PlaceList() {
@@ -234,9 +235,13 @@ function CheckInForm({ place, onDone }: { place: Place; onDone: () => void }) {
             </strong>
             <ul className="small">{result.checkin.verification_notes.map((n) => <li key={n}>{n}</li>)}</ul>
             {result.unlocked_badges.length > 0 && (
-              <div className="badges">{result.unlocked_badges.map((b) => (
-                <span key={b.code} className="badge-chip">{b.art ? <img src={b.art} width={28} height={28} alt="" /> : b.icon} {b.name}</span>
-              ))}</div>
+              <div className="badges unlocked" ref={(el) => { if (el && !el.dataset.done) { el.dataset.done = "1"; celebrate(el); } }}>
+                {result.unlocked_badges.map((b, i) => (
+                  <span key={b.code} className="badge-chip" style={{ animationDelay: `${i * 120}ms` }}>
+                    {b.art ? <img src={b.art} width={28} height={28} alt="" /> : b.icon} {b.name}
+                  </span>
+                ))}
+              </div>
             )}
             {result.city_progress && (
               <div className="small">

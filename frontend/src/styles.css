@@ -766,3 +766,100 @@ legend svg { vertical-align: -3px; color: var(--green); }
   .friend-actions { justify-content: flex-start; }
   .profile-head { flex-wrap: wrap; }
 }
+
+/* ================= Анимации ================= */
+:root { --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* Појавување при скролање (класата .motion ја додава motion.ts; без JS сè е видливо) */
+.motion :is(.section-title, .dest-card, .offer-card, .step-cards li, .review-card, .city-card, .panel, .card, .stamp,
+  .photo, .place-item, .stop, .person, .weather, .steps-visual, .promo-card, .empty, .day-tab) {
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out), box-shadow 0.2s, border-color 0.15s;
+}
+.motion :is(.section-title, .dest-card, .offer-card, .step-cards li, .review-card, .city-card, .panel, .card,
+  .photo, .place-item, .stop, .person, .weather, .steps-visual, .empty, .day-tab):not(.in) { opacity: 0; transform: translateY(22px); }
+.motion .stamp:not(.in) { opacity: 0; transform: scale(0.85) rotate(-4deg); }
+.motion .promo-card:not(.in) { opacity: 0; transform: rotate(-14deg) scale(0.8); }
+.motion .stop:not(.in) { transform: translateX(-16px); }
+
+/* Премин меѓу страници */
+.page-enter { animation: page-in 0.45s var(--ease-out) both; }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* Почетна: Ken Burns + наслов */
+.hero-bg img { animation: kenburns 22s ease-in-out infinite alternate; transform-origin: 60% 40%; }
+@keyframes kenburns { from { transform: scale(1.12) translate(1%, 1%); } to { transform: scale(1) translate(0, 0); } }
+.hero-script-small, .hero-script, .hero-side > * { animation: rise 0.9s var(--ease-out) both; }
+.hero-script-small { animation-delay: 0.1s; }
+.hero-script { animation-delay: 0.25s; animation-duration: 1.1s; }
+.hero-side > :nth-child(1) { animation-delay: 0.5s; }
+.hero-side > :nth-child(2) { animation-delay: 0.65s; }
+@keyframes rise { from { opacity: 0; transform: translateY(26px); filter: blur(4px); } }
+.search-wrap .searchbar { animation: rise 0.8s 0.75s var(--ease-out) both; }
+.scroll-cue { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); width: 26px; height: 42px; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 14px; animation: rise 0.8s 1.1s var(--ease-out) both; }
+.scroll-cue span { position: absolute; left: 50%; top: 8px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: #fff; animation: wheel 1.6s ease-in-out infinite; }
+@keyframes wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
+@media (max-width: 760px) { .scroll-cue { display: none; } }
+
+/* Горна лента: сенка при скролање */
+.topbar { transition: background 0.25s, border-color 0.25s, box-shadow 0.25s; }
+.topbar-scrolled:not(.topbar-over) { box-shadow: 0 6px 24px -14px rgba(13, 54, 64, 0.35); }
+.nav-link { position: relative; transition: color 0.15s; }
+.nav-link::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 3px; height: 2px; border-radius: 2px; background: currentColor; transform: scaleX(0); transition: transform 0.25s var(--ease-out); }
+.nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+
+/* Копчиња и картички */
+.btn { transition: background 0.15s, border-color 0.15s, transform 0.15s var(--ease-out), box-shadow 0.2s; }
+.btn:not(:disabled):hover { transform: translateY(-1px); }
+.btn-primary:not(:disabled):hover, .btn-green:not(:disabled):hover { box-shadow: 0 8px 18px -10px rgba(29, 158, 110, 0.8); }
+.btn:not(:disabled):active { transform: translateY(0) scale(0.97); }
+.chip { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s var(--ease-spring); }
+.chip.on { animation: chip-pop 0.3s var(--ease-spring); }
+@keyframes chip-pop { 50% { transform: scale(1.06); } }
+.motion :is(.dest-card, .offer-card, .city-card, .card-link, .review-card).in:hover { transform: translateY(-5px); box-shadow: var(--shadow-2); }
+.photo img { transition: transform 0.5s var(--ease-out); }
+.photo { overflow: hidden; }
+.photo:hover img { transform: scale(1.04); }
+.place-item a { transition: background 0.15s, padding-left 0.2s var(--ease-out); }
+.place-item a:hover { padding-left: 22px; }
+
+/* Лајк: срцето скока */
+.like.on svg { animation: heart-pop 0.45s var(--ease-spring); }
+@keyframes heart-pop { 0% { transform: scale(1); } 35% { transform: scale(1.45); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+
+/* Ленти за напредок се полнат */
+.progress-fill { transform-origin: left; animation: fill 1.1s 0.2s var(--ease-out) both; }
+@keyframes fill { from { transform: scaleX(0); } }
+
+/* Печати: „удар“ кога ќе се појават освоените; сјај при hover */
+.motion .stamp.in .badge-art:not(.locked) { animation: stamp-hit 0.55s var(--ease-spring); }
+@keyframes stamp-hit { 0% { transform: scale(1.35) rotate(-8deg); opacity: 0.4; } 60% { transform: scale(0.94) rotate(2deg); opacity: 1; } 100% { transform: none; } }
+.stamp:not(.stamp-locked) .stamp-art-wrap::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%) no-repeat; background-size: 300% 100%; background-position: 100% 0; }
+.stamp:not(.stamp-locked):hover .stamp-art-wrap::after { background-position: 0 0; transition: background-position 0.9s var(--ease-out); }
+
+/* Освоен беџ при фото-посета */
+.badges.unlocked .badge-chip { animation: badge-in 0.6s var(--ease-spring) both; }
+@keyframes badge-in { from { opacity: 0; transform: scale(0.6) translateY(10px); } }
+.confetti { position: fixed; width: 0; height: 0; z-index: 3000; pointer-events: none; }
+.confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; animation: confetti 1.3s var(--ease-out) forwards; }
+.confetti i:nth-child(3n) { width: 10px; height: 10px; border-radius: 50%; }
+@keyframes confetti {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--x), calc(var(--y) + 160px)) rotate(var(--r)); opacity: 0; }
+}
+
+/* Мобилна лента: активната икона скока */
+.tab-link.active svg { animation: chip-pop 0.35s var(--ease-spring); }
+.sheet-link { transition: padding-left 0.2s var(--ease-out), color 0.15s; }
+.sheet-link:hover { padding-left: 10px; }
+
+/* Вчитување: мек „пулс“ наместо празно */
+.state { animation: page-in 0.3s both; }
+.weather-loading { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.2; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg img, .scroll-cue span { animation: none !important; }
+  .page-enter { animation: none; }
+}

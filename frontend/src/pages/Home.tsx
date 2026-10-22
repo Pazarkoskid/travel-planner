@@ -154,9 +154,10 @@ export default function Home() {
           </div>
         </div>
         {heroCredit && <span className="hero-credit">{heroCredit}</span>}
+        <a href="#search" className="scroll-cue" aria-label={t("Скролај надолу")}><span /></a>
       </section>
 
-      <div className="container search-wrap">
+      <div className="container search-wrap" id="search">
         {cities && <SearchBar cities={cities} />}
       </div>
 
@@ -200,7 +201,7 @@ export default function Home() {
           <h2>{t("3 лесни чекори до вашето следно патување")}</h2>
           <Link to="/badges" className="promo-card">
             <span className="promo-small">{t("Соберете ги сите")}</span>
-            <span className="promo-big">{ohridTotal}</span>
+            <span className="promo-big" data-countup={ohridTotal}>{ohridTotal}</span>
             <span className="promo-small">{t("печати во Охрид")}</span>
           </Link>
         </div>

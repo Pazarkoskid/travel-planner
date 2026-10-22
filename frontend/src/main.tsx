@@ -27,8 +27,10 @@ import "@fontsource/marck-script/cyrillic-400.css";
 import "@fontsource/marck-script/latin-400.css";
 import "./styles.css";
 import { registerServiceWorker } from "./pwa";
+import { initMotion } from "./motion";
 
 registerServiceWorker();
+initMotion();
 
 function Protected({ children, roles }: { children: ReactNode; roles?: string[] }) {
   const { user, loading } = useAuth();

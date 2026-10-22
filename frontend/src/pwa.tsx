@@ -30,9 +30,13 @@ export function registerServiceWorker() {
       });
     } catch { /* PWA е дополнување; апликацијата работи и без неа */ }
   });
+  // Освежи само при ажурирање (веќе постоел контролер), не при првата инсталација.
+  const hadController = !!navigator.serviceWorker.controller;
   let reloading = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!reloading) { reloading = true; window.location.reload(); }
+    if (!hadController || reloading) return;
+    reloading = true;
+    window.location.reload();
   });
 }
 

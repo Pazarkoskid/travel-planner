@@ -30,21 +30,32 @@ export const tokens = {
   },
 };
 
-async function refresh(): Promise<boolean> {
+let refreshing: Promise<boolean> | null = null;
+
+async function doRefresh(): Promise<boolean> {
   const r = localStorage.getItem(REFRESH);
   if (!r) return false;
-  const res = await fetch(`${BASE}/auth/refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: r }),
-  });
-  if (!res.ok) {
-    tokens.clear();
+  try {
+    const res = await fetch(`${BASE}/auth/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: r }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    tokens.set(data.access, data.refresh);
+    return true;
+  } catch {
     return false;
   }
-  const data = await res.json();
-  tokens.set(data.access, data.refresh);
-  return true;
+}
+
+// Повеќе паралелни барања со истечен токен делат едно освежување.
+async function refresh(): Promise<boolean> {
+  refreshing ??= doRefresh().finally(() => { refreshing = null; });
+  const ok = await refreshing;
+  if (!ok) tokens.clear();
+  return ok;
 }
 
 function flattenDetails(details: unknown): string {
@@ -64,7 +75,12 @@ export async function api<T = unknown>(path: string, opts: RequestInit & { json?
     body = JSON.stringify(opts.json);
   }
   const res = await fetch(`${BASE}${path}`, { ...opts, headers, body });
-  if (res.status === 401 && retry && (await refresh())) return api<T>(path, opts, false);
+  if (res.status === 401 && retry && token) {
+    // Истечен/невалиден токен: освежи; ако не успее, токените се бришат и барањето
+    // се повторува без најава (јавните страници мора да работат и со стар токен).
+    if (await refresh()) return api<T>(path, opts, false);
+    if (!tokens.get()) return api<T>(path, opts, false);
+  }
   if (res.status === 204) return undefined as T;
   const ct = res.headers.get("content-type") || "";
   const data = ct.includes("json") ? await res.json() : await res.text();

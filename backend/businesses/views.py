@@ -12,11 +12,11 @@ from core.models import audit
 
 from .models import (
     Accommodation, AccommodationAvailability, AccommodationUnit, BoatDeparture, BoatTour,
-    Business, RestaurantProfile, TaxiService,
+    Business, RestaurantProfile, TaxiService, TransportService,
 )
 from .serializers import (
     AccommodationSerializer, AvailabilitySerializer, BoatTourSerializer, BusinessSerializer,
-    DepartureSerializer, RestaurantSerializer, TaxiSerializer,
+    DepartureSerializer, RestaurantSerializer, TaxiSerializer, TransportSerializer,
 )
 from .services import parse_stay, search_accommodations, unit_quote, with_ratings
 
@@ -110,6 +110,21 @@ class TaxiViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TaxiSerializer
     queryset = TaxiService.objects.filter(business__verification_status=APPROVED).select_related("business", "business__city").order_by("business__name")
     lookup_field = "business_id"
+
+
+class TransportViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = TransportSerializer
+    lookup_field = "business_id"
+
+    def get_queryset(self):
+        qs = TransportService.objects.filter(business__verification_status=APPROVED).select_related(
+            "business", "business__city").order_by("business__name")
+        p = self.request.query_params
+        if p.get("city"):
+            qs = qs.filter(business__city__slug=p["city"])
+        if p.get("type"):
+            qs = qs.filter(business__type=p["type"])
+        return qs
 
 
 @api_view(["GET"])

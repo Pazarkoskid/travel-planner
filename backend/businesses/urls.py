@@ -9,6 +9,7 @@ router.register("accommodations", views.AccommodationViewSet, basename="accommod
 router.register("restaurants", views.RestaurantViewSet, basename="restaurant")
 router.register("boat-tours", views.BoatTourViewSet, basename="boat-tour")
 router.register("taxi-services", views.TaxiViewSet, basename="taxi-service")
+router.register("transport-services", views.TransportViewSet, basename="transport-service")
 
 urlpatterns = router.urls + [
     path("boat-departures/<int:pk>/availability/", views.departure_availability),

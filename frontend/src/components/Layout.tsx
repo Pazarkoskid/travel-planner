@@ -55,7 +55,7 @@ export default function Layout() {
             <NavLink to="/places" className={link}>{t("Места")}</NavLink>
             <NavLink to="/stay" className={link}>{t("Сместување")}</NavLink>
             <NavLink to="/boat-tours" className={link}>{t("Бродски тури")}</NavLink>
-            <NavLink to="/services" className={link}>{t("Ресторани и такси")}</NavLink>
+            <NavLink to="/services" className={link}>{t("Превоз и ресторани")}</NavLink>
             <NavLink to="/map" className={link}>{t("Мапа")}</NavLink>
           </nav>
 
@@ -98,7 +98,7 @@ export default function Layout() {
             <NavLink to="/places" className="sheet-link"><Icon name="pin" />{t("Места")}</NavLink>
             <NavLink to="/stay" className="sheet-link"><Icon name="bed" />{t("Сместување")}</NavLink>
             <NavLink to="/boat-tours" className="sheet-link"><Icon name="boat" />{t("Бродски тури")}</NavLink>
-            <NavLink to="/services" className="sheet-link"><Icon name="fork" />{t("Ресторани и такси")}</NavLink>
+            <NavLink to="/services" className="sheet-link"><Icon name="fork" />{t("Превоз и ресторани")}</NavLink>
             <NavLink to="/map" className="sheet-link"><Icon name="map" />{t("Мапа")}</NavLink>
             <NavLink to="/badges" className="sheet-link"><Icon name="star" />{t("Беџови и колекција")}</NavLink>
             <InstallLink />
@@ -146,7 +146,7 @@ export default function Layout() {
               <NavLink to="/places">{t("Места")}</NavLink>
               <NavLink to="/stay">{t("Сместување")}</NavLink>
               <NavLink to="/boat-tours">{t("Бродски тури")}</NavLink>
-              <NavLink to="/services">{t("Ресторани и такси")}</NavLink>
+              <NavLink to="/services">{t("Превоз и ресторани")}</NavLink>
               <NavLink to="/map">{t("Мапа")}</NavLink>
               <NavLink to="/badges">{t("Беџови и колекција")}</NavLink>
             </div>

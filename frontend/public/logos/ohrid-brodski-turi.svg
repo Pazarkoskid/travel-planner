@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Охридски бродски тури (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#023e8a"/><stop offset="1" stop-color="#48cae4"/></linearGradient></defs>
+<path d="M64 4l54 16v34c0 36-24 60-54 70C34 114 10 90 10 54V20z" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h18l-3 5H6z"/><path d="M12 3v12M12 4l6 8h-6"/></g>
+<text x="64" y="96" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#ffffff">БТ</text>
+</svg>

@@ -9,6 +9,8 @@ class Business(models.Model):
         RESTAURANT = "RESTAURANT", "Ресторан"
         BOAT_TOUR = "BOAT_TOUR", "Бродска тура"
         TAXI = "TAXI", "Такси"
+        BUS = "BUS", "Автобуски превоз"
+        BIKE_RENTAL = "BIKE_RENTAL", "Изнајмување велосипеди"
 
     class Verification(models.TextChoices):
         PENDING = "PENDING", "Чека одобрување"
@@ -28,6 +30,7 @@ class Business(models.Model):
     email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
     image_url = models.URLField(blank=True, max_length=600)
+    logo = models.CharField(max_length=300, blank=True)
     verification_status = models.CharField(max_length=12, choices=Verification.choices, default=Verification.PENDING)
     is_sponsored = models.BooleanField(default=False, help_text="Секогаш се прикажува со ознака „Спонзорирано“.")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -161,3 +164,18 @@ class TaxiService(models.Model):
     vehicles = models.CharField(max_length=200, blank=True)
     languages = models.CharField(max_length=120, blank=True)
     fare_info = models.TextField(blank=True, help_text="Фиксни релации, доплати, начин на плаќање")
+
+
+class TransportService(models.Model):
+    business = models.OneToOneField(Business, on_delete=models.CASCADE, related_name="transport")
+    service_area = models.CharField(max_length=200, blank=True)
+    opening_hours = models.CharField(max_length=200, blank=True)
+    lines = models.JSONField(default=list, blank=True)
+    rentals = models.JSONField(default=list, blank=True)
+    price_info = models.TextField(blank=True)
+    payment = models.CharField(max_length=200, blank=True)
+    languages = models.CharField(max_length=120, blank=True)
+    features = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"{self.business.name} — превоз"

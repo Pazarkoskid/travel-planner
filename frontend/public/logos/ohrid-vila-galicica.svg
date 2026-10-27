@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Вила Галичица (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2d6a4f"/><stop offset="1" stop-color="#74c69d"/></linearGradient></defs>
+<path d="M64 4l54 16v34c0 36-24 60-54 70C34 114 10 90 10 54V20z" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l6 8h-3l4 6H5l4-6H6z"/><path d="M12 17v4"/></g>
+<text x="64" y="96" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="22" font-weight="800" letter-spacing="2" fill="#ffffff">Г</text>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Канео Такси (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd60a"/><stop offset="1" stop-color="#ffc300"/></linearGradient></defs>
+<circle cx="64" cy="64" r="60" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#1b1b1b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-3l2-5h12l2 5v3z"/><path d="M10 8V5h4v3M6 16v3M18 16v3"/><circle cx="8" cy="13" r=".6"/><circle cx="16" cy="13" r=".6"/></g>
+<text x="64" y="100" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#1b1b1b">КТ</text>
+</svg>

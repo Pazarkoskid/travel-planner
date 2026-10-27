@@ -18,7 +18,7 @@ import Credits from "./pages/Credits";
 import BadgesPage from "./pages/Badges";
 import FriendsPage from "./pages/Friends";
 import MapPage from "./pages/MapPage";
-import { AccommodationDetail, BoatTourDetail, RestaurantDetail, TaxiDetail } from "./pages/Listings";
+import { AccommodationDetail, BoatTourDetail, RestaurantDetail, TaxiDetail, TransportDetail } from "./pages/Listings";
 import { BusinessEditPage, NewBusinessPage } from "./pages/BusinessEdit";
 import "@fontsource/onest/400.css";
 import "@fontsource/onest/500.css";
@@ -59,6 +59,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="stay/:id" element={<AccommodationDetail />} />
             <Route path="boat-tours/:id" element={<BoatTourDetail />} />
             <Route path="taxi/:id" element={<TaxiDetail />} />
+            <Route path="transport/:id" element={<TransportDetail />} />
             <Route path="restaurants/:id" element={<RestaurantDetail />} />
             <Route path="u/:username" element={<PublicProfilePage />} />
             <Route path="credits" element={<Credits />} />

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Охрид Такси (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fca311"/><stop offset="1" stop-color="#e85d04"/></linearGradient></defs>
+<rect x="4" y="4" width="120" height="120" rx="34" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#14213d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-3l2-5h12l2 5v3z"/><path d="M10 8V5h4v3M6 16v3M18 16v3"/><circle cx="8" cy="13" r=".6"/><circle cx="16" cy="13" r=".6"/></g>
+<text x="64" y="100" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#14213d">ОТ</text>
+</svg>

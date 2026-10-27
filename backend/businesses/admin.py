@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import (
     Accommodation, AccommodationAvailability, AccommodationUnit, BoatDeparture, BoatTour,
-    Business, BusinessUser, RestaurantProfile, TaxiService,
+    Business, BusinessUser, RestaurantProfile, TaxiService, TransportService,
 )
 
 
@@ -45,3 +45,4 @@ class BoatTourAdmin(admin.ModelAdmin):
 admin.site.register(BusinessUser)
 admin.site.register(RestaurantProfile)
 admin.site.register(TaxiService)
+admin.site.register(TransportService)

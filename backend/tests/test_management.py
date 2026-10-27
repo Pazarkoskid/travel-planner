@@ -175,8 +175,13 @@ def test_database_url_transaction_pooler_settings(monkeypatch):
 def test_seed_if_empty_skips_existing_data(city, capsys):
     from django.core.management import call_command
 
+    from accounts.models import User
+    from businesses.models import Business
+
     call_command("seed_demo", "--if-empty")
-    assert "прескокнат" in capsys.readouterr().out
+    assert "само новите места и бизниси" in capsys.readouterr().out
+    assert not User.objects.filter(username="turist").exists()
+    assert Business.objects.filter(type="BUS").exists()
 
 
 def test_secure_db_noop_on_sqlite(capsys):

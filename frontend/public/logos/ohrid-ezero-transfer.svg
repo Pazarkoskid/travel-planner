@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Езеро Трансфер (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a0ca3"/><stop offset="1" stop-color="#4361ee"/></linearGradient></defs>
+<path d="M64 4l52 30v60l-52 30-52-30V34z" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14l20-7-4 13-5-4-3 4v-5l9-7-11 6z"/></g>
+<text x="64" y="100" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#ffffff">ЕТ</text>
+</svg>

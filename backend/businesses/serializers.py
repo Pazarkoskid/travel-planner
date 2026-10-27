@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from .models import (
     Accommodation, AccommodationAvailability, AccommodationUnit, BoatDeparture, BoatTour,
-    Business, RestaurantProfile, TaxiService,
+    Business, RestaurantProfile, TaxiService, TransportService,
 )
 
 
@@ -16,7 +16,7 @@ class BusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = ("id", "name", "type", "type_label", "description", "city", "city_name", "city_image_url", "address",
-                  "lat", "lng", "phone", "email", "website", "image_url", "is_sponsored", "avg_rating", "review_count")
+                  "lat", "lng", "phone", "email", "website", "image_url", "logo", "is_sponsored", "avg_rating", "review_count")
 
 
 class UnitSerializer(serializers.ModelSerializer):
@@ -84,3 +84,12 @@ class TaxiSerializer(serializers.ModelSerializer):
         model = TaxiService
         fields = ("id", "business", "service_area", "passenger_capacity", "base_fare", "per_km", "available_24h",
                   "vehicles", "languages", "fare_info")
+
+
+class TransportSerializer(serializers.ModelSerializer):
+    business = BusinessSerializer(read_only=True)
+
+    class Meta:
+        model = TransportService
+        fields = ("id", "business", "service_area", "opening_hours", "lines", "rentals", "price_info", "payment",
+                  "languages", "features")

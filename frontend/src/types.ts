@@ -117,6 +117,7 @@ export interface Business {
   city_name: string;
   city_image_url: string;
   image_url: string;
+  logo: string;
   address: string;
   phone: string;
   email: string;
@@ -296,6 +297,36 @@ export interface TaxiService {
   vehicles: string;
   languages: string;
   fare_info: string;
+}
+
+export interface TransitLine {
+  code: string;
+  name: string;
+  route: string;
+  first: string;
+  last: string;
+  every_min: number;
+  duration_min: number;
+  price: number;
+}
+
+export interface RentalItem {
+  name: string;
+  per_hour: number | null;
+  per_day: number | null;
+}
+
+export interface TransportService {
+  id: number;
+  business: Business;
+  service_area: string;
+  opening_hours: string;
+  lines: TransitLine[];
+  rentals: RentalItem[];
+  price_info: string;
+  payment: string;
+  languages: string;
+  features: string[];
 }
 
 export interface MenuItem {

@@ -4,9 +4,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import { eur, fmtDateTime, isoDate, useAsync } from "../hooks";
 import { useAuth } from "../auth";
-import { Empty, ErrorBox, Field, Loading, Meta, Stars } from "../components/ui";
+import { BizLogo, Empty, ErrorBox, Field, Loading, Meta, Stars } from "../components/ui";
+import Icon from "../components/Icon";
 import Photo from "../components/Photo";
-import type { AccommodationResult, BoatTour, Business, City, Review } from "../types";
+import type { AccommodationResult, BoatTour, Business, City, Review, TransportService } from "../types";
 
 const AMENITIES: [string, string][] = [
   ["wifi", "Wi-Fi"], ["ac", t("Клима")], ["parking", t("Паркинг")], ["kitchen", t("Кујна")], ["terrace", t("Тераса")], ["lake_view", t("Поглед на езеро")],
@@ -99,7 +100,7 @@ export function Accommodations() {
             <div>
               {r.business.is_sponsored && <span className="sponsored">{t("Спонзорирано")}</span>}
               <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={`/stay/${r.id}?check_in=${q.check_in}&check_out=${q.check_out}&guests=${q.guests}`}>{r.title}</Link></h2>
-              <Meta items={[r.business.name, t(r.type_label), t("до {0} гости", { 0: r.max_guests }), t("{0} спални", { 0: r.bedrooms })]} />
+              <div className="row gap" style={{ alignItems: "center" }}><BizLogo b={r.business} size={32} /><Meta items={[r.business.name, t(r.type_label), t("до {0} гости", { 0: r.max_guests }), t("{0} спални", { 0: r.bedrooms })]} /></div>
             </div>
             <div className="chips">{r.amenities.map((a) => <span className="chip static" key={a}>{AMENITIES.find(([k]) => k === a)?.[1] || a}</span>)}</div>
             <p className="small" style={{ margin: 0 }}>{t("Зошто е предложено:")} {r.recommendation_reason.split(", ").map((x) => (x.startsWith("оценка ") ? t("оценка {0}", { 0: x.slice(7) }) : t(x))).join(", ")}.</p>
@@ -229,15 +230,59 @@ export function BoatTours() {
   );
 }
 
+const KINDS: [string, string][] = [
+  ["", t("Сите")], ["TAXI", t("Такси")], ["BUS", t("Автобуси")], ["BIKE_RENTAL", t("Велосипеди")], ["RESTAURANT", t("Ресторани")],
+];
+const KIND_ICON: Record<string, string> = { TAXI: "car", BUS: "bus", BIKE_RENTAL: "bike", RESTAURANT: "fork" };
+const detailPath = (b: Business) =>
+  b.type === "TAXI" ? `/taxi/${b.id}` : b.type === "RESTAURANT" ? `/restaurants/${b.id}` : `/transport/${b.id}`;
+
+function TransportSummary({ tr }: { tr: TransportService }) {
+  if (tr.lines.length) {
+    return (
+      <ul className="line-list">
+        {tr.lines.slice(0, 3).map((l) => (
+          <li key={l.code}><span className="line-code">{l.code}</span>{l.name}<span className="small muted"> · {t("на {0} мин", { 0: l.every_min })}</span></li>
+        ))}
+      </ul>
+    );
+  }
+  const hourly = tr.rentals.map((r) => r.per_hour).filter((x): x is number => x !== null);
+  const daily = tr.rentals.map((r) => r.per_day).filter((x): x is number => x !== null);
+  return (
+    <p className="small" style={{ margin: 0 }}>
+      {tr.rentals.map((r) => r.name).join(", ")}.
+      {hourly.length > 0 && <> {t("Од {0} на час", { 0: eur(Math.min(...hourly)) })}</>}
+      {daily.length > 0 && <> {t("или {0} на ден", { 0: eur(Math.min(...daily)) })}</>}.
+    </p>
+  );
+}
+
 export function OtherServices() {
   const { user } = useAuth();
-  const { data } = useAsync(async () => {
-    const r = await api<Business[] | { results: Business[] }>("/businesses/");
-    return (Array.isArray(r) ? r : r.results).filter((b) => b.type === "RESTAURANT" || b.type === "TAXI");
-  }, []);
+  const [params, setParams] = useSearchParams();
+  const city = params.get("city") || "";
+  const kind = params.get("type") || "";
+  const { data: cities } = useAsync(() => api<City[]>("/cities/"), []);
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [biz, trans] = await Promise.all([
+      api<Business[] | { results: Business[] }>(`/businesses/${city ? `?city=${city}` : ""}`),
+      api<TransportService[] | { results: TransportService[] }>(`/transport-services/${city ? `?city=${city}` : ""}`),
+    ]);
+    const list = (Array.isArray(biz) ? biz : biz.results).filter((b) => KIND_ICON[b.type]);
+    const byBiz = Object.fromEntries((Array.isArray(trans) ? trans : trans.results).map((x) => [x.business.id, x]));
+    return { list, byBiz };
+  }, [city]);
   const [form, setForm] = useState<Record<number, { when: string; guests: number; pickup: string; destination: string }>>({});
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const shown = (data?.list || []).filter((b) => !kind || b.type === kind);
+  const counts = (data?.list || []).reduce<Record<string, number>>((m, b) => ({ ...m, [b.type]: (m[b.type] || 0) + 1 }), {});
+  const setParam = (k: string, v: string) => {
+    const n = new URLSearchParams(params);
+    if (v) n.set(k, v); else n.delete(k);
+    setParams(n, { replace: true });
+  };
 
   const send = async (b: Business) => {
     const f = form[b.id] || { when: "", guests: 2, pickup: "", destination: "" };
@@ -258,27 +303,47 @@ export function OtherServices() {
     <div className="stack">
       <div className="page-head" style={{ marginBottom: 0 }}>
         <div>
-          <h1>{t("Ресторани и такси")}</h1>
-          <p>{t("Барањето не е гаранција. Бизнисот го прифаќа, одбива или предлага друг термин; таксито испраќа понуда со цена.")}</p>
+          <h1>{t("Превоз и ресторани")}</h1>
+          <p>{t("Такси, градски автобуси, изнајмување велосипеди и ресторани. Барањето не е гаранција: бизнисот го прифаќа или предлага друг термин.")}</p>
         </div>
+        <select value={city} onChange={(e) => setParam("city", e.target.value)} aria-label={t("Град")} style={{ width: "auto" }}>
+          <option value="">{t("Сите градови")}</option>
+          {cities?.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+        </select>
+      </div>
+      <div className="chips" role="group" aria-label={t("Тип на услуга")}>
+        {KINDS.map(([k, l]) => (
+          <button key={k} type="button" className={kind === k ? "chip on" : "chip"} aria-pressed={kind === k} onClick={() => setParam("type", k)}>
+            {k && <Icon name={KIND_ICON[k]} size={16} />}{l}{k ? ` ${counts[k] || 0}` : ""}
+          </button>
+        ))}
       </div>
       {msg && <div className="alert alert-ok">{msg} <Link to="/reservations">{t("Отвори ги резервациите")}</Link></div>}
       {err && <ErrorBox message={err} />}
+      {loading && <Loading />}
+      {error && <ErrorBox message={error} onRetry={reload} />}
+      {data && shown.length === 0 && <Empty title={t("Нема услуги за избраниот филтер.")} />}
       <div className="grid grid-2">
-        {data?.map((b) => {
+        {shown.map((b) => {
           const f = form[b.id] || { when: "", guests: 2, pickup: "", destination: "" };
           const upd = (patch: Partial<typeof f>) => setForm({ ...form, [b.id]: { ...f, ...patch } });
+          const tr = data?.byBiz[b.id];
+          const bookable = b.type === "TAXI" || b.type === "RESTAURANT";
           return (
-            <article key={b.id} className="panel stack">
-              <div className="row between wrap gap">
-                <div>
-                  <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={b.type === "TAXI" ? `/taxi/${b.id}` : `/restaurants/${b.id}`}>{b.name}</Link></h2>
+            <article key={b.id} className="panel stack service-card">
+              <div className="service-head">
+                <BizLogo b={b} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h2 style={{ marginBottom: 4 }}><Link className="title-link" to={detailPath(b)}>{b.name}</Link></h2>
                   <Meta items={[t(b.type_label), b.city_name]} />
                   {b.phone && <a className="phone-link" href={`tel:${b.phone.replace(/\s+/g, "")}`}>{b.phone}</a>}
                 </div>
                 <Stars value={b.avg_rating} count={b.review_count} />
               </div>
-              {user ? (
+              {b.description && <p className="small" style={{ margin: 0 }}>{b.description}</p>}
+              {tr && <TransportSummary tr={tr} />}
+              {tr?.opening_hours && <p className="small muted" style={{ margin: 0 }}><Icon name="clock" size={14} /> {tr.opening_hours}</p>}
+              {bookable && (user ? (
                 <>
                   <div className="grid grid-2">
                     <Field label={t("Датум и време")}><input type="datetime-local" value={f.when} onChange={(e) => upd({ when: e.target.value })} /></Field>
@@ -290,10 +355,13 @@ export function OtherServices() {
                       <Field label={t("Дестинација")}><input value={f.destination} onChange={(e) => upd({ destination: e.target.value })} /></Field>
                     </div>
                   )}
-                  <button className="btn btn-primary btn-sm" disabled={!f.when} onClick={() => send(b)}>{t("Испрати барање")}</button>
+                  <button className="btn btn-primary btn-sm" style={{ width: "fit-content" }} disabled={!f.when} onClick={() => send(b)}>{t("Испрати барање")}</button>
                 </>
-              ) : <Link to="/login" className="btn btn-ghost btn-sm" style={{ width: "fit-content" }}>{t("Најави се за да испратиш барање")}</Link>}
-              <Link className="small" to={b.type === "TAXI" ? `/taxi/${b.id}` : `/restaurants/${b.id}`}>{b.type === "TAXI" ? t("Тарифи, возила и контакт") : t("Мени, работно време и контакт")}</Link>
+              ) : <Link to="/login" className="btn btn-ghost btn-sm" style={{ width: "fit-content" }}>{t("Најави се за да испратиш барање")}</Link>)}
+              <Link className="small" to={detailPath(b)}>
+                {b.type === "TAXI" ? t("Тарифи, возила и контакт") : b.type === "RESTAURANT" ? t("Мени, работно време и контакт")
+                  : b.type === "BUS" ? t("Сите линии и цени") : t("Цени, опрема и контакт")}
+              </Link>
             </article>
           );
         })}

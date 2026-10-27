@@ -7,6 +7,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
@@ -59,7 +60,8 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **opts):
         if opts["if_empty"] and City.objects.exists():
-            self.stdout.write("Базата веќе има податоци — seed е прескокнат.")
+            self.stdout.write("Базата веќе има податоци — се додаваат само новите места и бизниси.")
+            call_command("seed_catalog", csv=opts["csv"])
             return
         if opts["reset"]:
             Review.objects.all().delete()
@@ -202,6 +204,7 @@ class Command(BaseCommand):
                 gamification.create_checkin(turist, p, demo_image((40 + i * 60, 120, 200 - i * 50)),
                                             client_lat=p.lat, client_lng=p.lng, caption=f"Посета на {p.name}")
 
+        call_command("seed_catalog", csv=opts["csv"])
         self.stdout.write("Фотографии: python manage.py fetch_images (потребен е интернет).")
         self.stdout.write(self.style.SUCCESS(
             "Демо податоците се подготвени. Корисници: admin / host / turist (лозинки во README)."))

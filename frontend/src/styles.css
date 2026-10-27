@@ -853,3 +853,11 @@ legend svg { vertical-align: -3px; color: var(--green); }
   .map-canvas { order: -1; height: 58vh; }
   .map-list { max-height: 60vh; }
 }
+
+.biz-logo { flex: none; border-radius: 14px; object-fit: contain; background: transparent; }
+.service-head { display: flex; gap: 14px; align-items: flex-start; }
+.service-card .chip svg { margin-right: 2px; }
+.chips .chip { display: inline-flex; align-items: center; gap: 6px; }
+.line-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.92rem; }
+.line-list li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.line-code { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 6px; border-radius: 8px; background: var(--teal-dark); color: #fff; font-weight: 700; font-size: 0.82rem; }

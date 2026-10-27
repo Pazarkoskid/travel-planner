@@ -115,3 +115,8 @@ export function Stamp({ badge, date, locked = false }: { badge: Badge; date?: st
     </div>
   );
 }
+
+export function BizLogo({ b, size = 56 }: { b: { logo?: string; name: string }; size?: number }) {
+  if (!b.logo) return null;
+  return <img className="biz-logo" src={b.logo} alt={t("Лого: {0}", { 0: b.name })} width={size} height={size} loading="lazy" />;
+}

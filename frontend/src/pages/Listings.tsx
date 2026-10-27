@@ -4,13 +4,13 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import { eur, fmtDateTime, isoDate, useAsync } from "../hooks";
 import { useAuth } from "../auth";
-import { Empty, ErrorBox, Field, Loading, Meta, Stars } from "../components/ui";
+import { BizLogo, Empty, ErrorBox, Field, Loading, Meta, Stars } from "../components/ui";
 import Photo from "../components/Photo";
 import MapView from "../components/MapView";
 import Icon from "../components/Icon";
 import WeatherCard, { WeatherChip } from "../components/Weather";
 import { ReviewsList } from "./Services";
-import type { AccommodationResult, BoatTour, Business, Restaurant, TaxiService } from "../types";
+import type { AccommodationResult, BoatTour, Business, Restaurant, TaxiService, TransportService } from "../types";
 
 const AMENITY_LABEL: Record<string, string> = {
   wifi: "Wi-Fi", ac: t("Клима"), parking: t("Паркинг"), kitchen: t("Кујна"), terrace: t("Тераса"), lake_view: t("Поглед на езеро"),
@@ -45,7 +45,10 @@ function ContactCard({ b, extra }: { b: Business; extra?: React.ReactNode }) {
   return (
     <aside className="panel contact-card">
       <h2>{t("Контакт")}</h2>
-      <strong className="contact-name">{b.name}</strong>
+      <div className="row gap" style={{ alignItems: "center" }}>
+        <BizLogo b={b} size={48} />
+        <strong className="contact-name">{b.name}</strong>
+      </div>
       {b.phone ? (
         <a className="btn btn-primary btn-block contact-phone" href={`tel:${b.phone.replace(/\s+/g, "")}`}>
           <Icon name="phone" size={18} />{b.phone}
@@ -439,6 +442,84 @@ export function RestaurantDetail() {
           } />
           <MapView points={[{ lat: b.lat, lng: b.lng, label: b.name }]} height={240} />
           <p className="small muted">{t("Мени, цени и работно време ги внесува ресторанот.")}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function TransportDetail() {
+  const { id } = useParams();
+  const { data: tr, error, loading } = useAsync(() => api<TransportService>(`/transport-services/${id}/`), [id]);
+  if (loading) return <Loading />;
+  if (error || !tr) return <ErrorBox message={error || t("Услугата не постои.")} />;
+  const b = tr.business;
+  const isBus = b.type === "BUS";
+  const price = (v: number | null) => (v === null || v === undefined ? "—" : eur(v));
+  return (
+    <div className="stack-lg">
+      <DetailHero img={b.image_url || b.city_image_url} alt={b.name} seed={b.id + 3} title={b.name}
+                  kicker={<><Link to={`/services?type=${b.type}`}>{isBus ? t("Автобуси") : t("Велосипеди")}</Link>, {b.city_name}</>}>
+        <div className="banner-facts">
+          {tr.service_area && <span><Icon name="pin" size={16} />{tr.service_area}</span>}
+          {tr.opening_hours && <span><Icon name="clock" size={16} />{tr.opening_hours}</span>}
+        </div>
+      </DetailHero>
+      <div className="detail-grid">
+        <div className="stack-lg">
+          {b.description && <section className="panel"><h2>{isBus ? t("За превозникот") : t("За изнајмувањето")}</h2><p style={{ margin: 0 }}>{b.description}</p></section>}
+          {tr.lines.length > 0 && (
+            <section className="panel stack">
+              <h2>{t("Линии и возен ред")}</h2>
+              <table className="table table-cards">
+                <thead><tr><th>{t("Линија")}</th><th>{t("Релација")}</th><th>{t("Прв / последен")}</th><th>{t("Честота")}</th><th>{t("Цена")}</th></tr></thead>
+                <tbody>
+                  {tr.lines.map((l) => (
+                    <tr key={l.code}>
+                      <td data-label={t("Линија")}><span className="line-code">{l.code}</span></td>
+                      <td data-label={t("Релација")}><strong>{l.name}</strong><br /><span className="small muted">{l.route} · {t("{0} мин", { 0: l.duration_min })}</span></td>
+                      <td data-label={t("Прв / последен")}>{l.first} – {l.last}</td>
+                      <td data-label={t("Честота")}>{t("на {0} мин", { 0: l.every_min })}</td>
+                      <td data-label={t("Цена")}>{eur(l.price)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
+          {tr.rentals.length > 0 && (
+            <section className="panel stack">
+              <h2>{t("Ценовник")}</h2>
+              <table className="table table-cards">
+                <thead><tr><th>{t("Возило / услуга")}</th><th>{t("На час")}</th><th>{t("На ден")}</th></tr></thead>
+                <tbody>
+                  {tr.rentals.map((r) => (
+                    <tr key={r.name}>
+                      <td data-label={t("Возило / услуга")}><strong>{r.name}</strong></td>
+                      <td data-label={t("На час")}>{price(r.per_hour)}</td>
+                      <td data-label={t("На ден")}>{price(r.per_day)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
+          {(tr.price_info || tr.features.length > 0) && (
+            <section className="panel stack">
+              <h2>{t("Добро е да знаете")}</h2>
+              {tr.price_info && <p style={{ margin: 0 }}>{tr.price_info}</p>}
+              {tr.features.length > 0 && <div className="chips">{tr.features.map((f) => <span key={f} className="chip static"><Icon name="check" size={14} />{f}</span>)}</div>}
+            </section>
+          )}
+          <section className="panel"><h2>{t("Рецензии")}</h2><ReviewsList businessId={b.id} /></section>
+        </div>
+        <div className="stack-lg detail-side">
+          <ContactCard b={b} extra={<>
+            {tr.payment && <span className="contact-line"><Icon name="ticket" size={18} />{tr.payment}</span>}
+            {tr.languages && <span className="contact-line"><Icon name="globe" size={18} />{tr.languages}</span>}
+          </>} />
+          <MapView points={[{ lat: b.lat, lng: b.lng, label: b.name }]} height={240} />
+          <p className="small muted">{t("Демо податоци: возниот ред и цените ги внесува превозникот и треба да се проверат.")}</p>
         </div>
       </div>
     </div>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Хотел Вардар Палас (демо)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d3557"/><stop offset="1" stop-color="#457b9d"/></linearGradient></defs>
+<rect x="4" y="4" width="120" height="120" rx="34" fill="url(#g)"/>
+<g transform="translate(40 24) scale(2)" fill="none" stroke="#f1c453" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/><path d="M5 19h14"/></g>
+<text x="64" y="100" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#f1c453">ВП</text>
+</svg>

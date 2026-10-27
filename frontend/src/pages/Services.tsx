@@ -36,7 +36,6 @@ export function Accommodations() {
     const p = new URLSearchParams({ ...q, amenities: amen.join(",") });
     if (!q.max_total) p.delete("max_total");
     return api<AccommodationResult[]>(`/accommodations/?${p}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
   const [booked, setBooked] = useState<string | null>(null);
   const [bookError, setBookError] = useState<string | null>(null);

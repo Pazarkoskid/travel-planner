@@ -19,7 +19,6 @@ from .permissions import IsAdminRole
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def analytics(request):
-    """Агрегирана аналитика — без лични податоци."""
     runs = AIPlanRun.objects.all()[:200]
     gen = [r.duration_ms for r in runs]
     improvements = [r.metrics.get("travel_improvement_pct", 0) for r in runs if r.metrics]
@@ -64,7 +63,6 @@ def verify_business(request, pk):
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def weather(request):
-    """GET /weather/?city=<id|slug> или ?place=<id> или ?lat=&lng="""
     from destinations.models import City, Place
 
     from .weather import get_weather
@@ -94,7 +92,6 @@ def weather(request):
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def amenities(request):
-    """GET /amenities/?city=<id|slug> — пекари, маркети, менувачници, трафики, банкомати, аптеки (OSM)."""
     from destinations.models import City
 
     from .amenities import get_amenities

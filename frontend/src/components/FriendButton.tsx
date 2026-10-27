@@ -4,7 +4,6 @@ import { t } from "../i18n";
 import type { Person, Relation } from "../types";
 import Icon from "./Icon";
 
-/** Копче според односот: Додај → Испратено (откажи) → Прифати/Одбиј → Пријатели (отстрани). */
 export default function FriendButton({ username, relation, requestId, onChange }: {
   username: string; relation: Relation; requestId: number | null; onChange?: (p: Partial<Person>) => void;
 }) {

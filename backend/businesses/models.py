@@ -89,7 +89,6 @@ class Accommodation(models.Model):
 
 
 class AccommodationUnit(models.Model):
-    """Еден тип/единица. Повеќе идентични соби = available_units > 1 во достапноста."""
 
     accommodation = models.ForeignKey(Accommodation, on_delete=models.CASCADE, related_name="units")
     unit_name = models.CharField(max_length=120)
@@ -123,7 +122,6 @@ class BoatTour(models.Model):
     title = models.CharField(max_length=200)
     route = models.TextField()
     description = models.TextField(blank=True)
-    # [{"name": "...", "minutes": 0, "stop_min": 0, "lat": 41.1, "lng": 20.8, "note": "..."}]
     stops = models.JSONField(default=list, blank=True, help_text="Постојки по редослед, со минути од поаѓање")
     includes = models.TextField(blank=True, help_text="Што е вклучено во цената")
     duration_min = models.PositiveIntegerField()

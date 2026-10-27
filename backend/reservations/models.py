@@ -20,7 +20,6 @@ class Reservation(models.Model):
         REJECTED = "REJECTED", "Одбиено"
         CANCELLED = "CANCELLED", "Откажано"
 
-    # Статуси во кои капацитетот е резервиран за корисникот.
     HOLDING = (Status.PENDING, Status.QUOTED, Status.ALTERNATIVE_PROPOSED, Status.CONFIRMED, Status.IN_PROGRESS)
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reservations")
@@ -29,13 +28,10 @@ class Reservation(models.Model):
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.PENDING, db_index=True)
     guests = models.PositiveSmallIntegerField(default=1)
 
-    # Сместување
     accommodation_unit = models.ForeignKey("businesses.AccommodationUnit", null=True, blank=True, on_delete=models.PROTECT)
     check_in = models.DateField(null=True, blank=True)
     check_out = models.DateField(null=True, blank=True)
-    # Бродска тура
     boat_departure = models.ForeignKey("businesses.BoatDeparture", null=True, blank=True, on_delete=models.PROTECT)
-    # Ресторан / такси
     reserved_for = models.DateTimeField(null=True, blank=True)
     pickup = models.CharField(max_length=300, blank=True)
     destination = models.CharField(max_length=300, blank=True)
@@ -44,7 +40,6 @@ class Reservation(models.Model):
     business_message = models.CharField(max_length=500, blank=True)
     proposed_datetime = models.DateTimeField(null=True, blank=True)
     quoted_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    # Snapshot на цената во моментот на барањето.
     total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=3, default="EUR")
     idempotency_key = models.CharField(max_length=64, null=True, blank=True)
@@ -69,7 +64,6 @@ class Reservation(models.Model):
 
     @property
     def service_end(self):
-        """Кога услугата практично завршува (за дозвола за COMPLETED)."""
         from datetime import datetime, time, timedelta
 
         from django.utils import timezone

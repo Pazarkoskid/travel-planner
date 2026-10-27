@@ -63,7 +63,6 @@ class PhotoCheckIn(models.Model):
 
 
 class PlacePhoto(models.Model):
-    """Фотографијата во галеријата на местото; секогаш поврзана со корисникот."""
 
     checkin = models.OneToOneField(PhotoCheckIn, on_delete=models.CASCADE, related_name="photo")
     place = models.ForeignKey("destinations.Place", on_delete=models.CASCADE, related_name="photos")
@@ -84,7 +83,7 @@ class UserBadge(models.Model):
     source_checkin = models.ForeignKey(PhotoCheckIn, null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
-        unique_together = ("user", "badge")  # беџот се доделува еднаш
+        unique_together = ("user", "badge")
         ordering = ["-unlocked_at"]
 
 
@@ -117,7 +116,6 @@ class PlaceReport(models.Model):
 
 
 class PhotoLike(models.Model):
-    """Лајк на фотографија од галеријата; еден корисник — еден лајк по фотографија."""
 
     photo = models.ForeignKey(PlacePhoto, on_delete=models.CASCADE, related_name="likes")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="photo_likes")

@@ -1,6 +1,3 @@
-// Тенок API клиент. JWT токените се чуваат во localStorage (доволно за MVP;
-// за продукција — httpOnly cookie преку backend).
-// Локално: празно (Vite proxy). На Render: VITE_API_URL=https://<backend>.onrender.com
 import { lang, t } from "../i18n";
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
@@ -52,7 +49,6 @@ async function doRefresh(): Promise<boolean> {
   }
 }
 
-// Повеќе паралелни барања со истечен токен делат едно освежување.
 async function refresh(): Promise<boolean> {
   refreshing ??= doRefresh().finally(() => { refreshing = null; });
   const ok = await refreshing;
@@ -78,8 +74,7 @@ export async function api<T = unknown>(path: string, opts: RequestInit & { json?
   }
   const res = await fetch(`${BASE}${path}`, { ...opts, headers, body });
   if (res.status === 401 && retry && token) {
-    // Истечен/невалиден токен: освежи; ако не успее, токените се бришат и барањето
-    // се повторува без најава (јавните страници мора да работат и со стар токен).
+
     if (await refresh()) return api<T>(path, opts, false);
     if (!tokens.get()) return api<T>(path, opts, false);
   }

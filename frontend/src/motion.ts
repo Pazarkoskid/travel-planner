@@ -1,7 +1,3 @@
-// Анимации при скролање: елементите се појавуваат кога ќе влезат во екранот, во мал редослед.
-// Без библиотека: IntersectionObserver + MutationObserver (React рендерира динамично).
-// Ако корисникот има „reduce motion“, ништо не се анимира и сè е веднаш видливо.
-
 const SELECTOR = [
   ".section-title", ".dest-card", ".offer-card", ".step-cards li", ".review-card", ".city-card",
   ".panel", ".card", ".stamp", ".photo", ".place-item", ".stop", ".person", ".weather",
@@ -17,11 +13,11 @@ export function initMotion() {
   document.documentElement.classList.add("motion");
 
   const io = new IntersectionObserver((entries) => {
-    // Елементите што влегуваат заедно се појавуваат еден по друг.
+
     const visible = entries.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement);
     const queue: HTMLElement[] = [];
     visible.forEach((el) => {
-      // Во хоризонтални ленти и листи со скролање се појавуваат сите одеднаш (инаку празни при свајп).
+
       const box = el.closest(SCROLLERS);
       const group = box ? Array.from(box.querySelectorAll<HTMLElement>(SELECTOR)) : [el];
       group.forEach((g) => { if (!g.classList.contains("in") && !queue.includes(g)) queue.push(g); });
@@ -45,7 +41,6 @@ export function initMotion() {
     for (const m of muts) m.addedNodes.forEach((n) => { if (n instanceof HTMLElement) { if (n.matches(SELECTOR)) scan(n.parentElement || n); scan(n); } });
   }).observe(document.body, { childList: true, subtree: true });
 
-  // Бројачи: елемент со data-countup се „брои“ од 0 кога ќе се појави.
   const counter = new IntersectionObserver((entries) => {
     entries.filter((e) => e.isIntersecting).forEach(({ target }) => {
       counter.unobserve(target);
@@ -69,7 +64,6 @@ export function initMotion() {
   new MutationObserver(scanCounters).observe(document.body, { childList: true, subtree: true });
 }
 
-/** Конфети за освоен беџ (чист DOM, се брише сам). */
 export function celebrate(anchor?: HTMLElement | null) {
   if (reduced()) return;
   const host = document.createElement("div");

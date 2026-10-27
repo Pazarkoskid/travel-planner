@@ -6,7 +6,7 @@ const cachedUser = (): User | null => {
   try { return JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch { return null; }
 };
 const saveUser = (u: User | null) => {
-  try { u ? localStorage.setItem(USER_KEY, JSON.stringify(u)) : localStorage.removeItem(USER_KEY); } catch { /* приватен режим */ }
+  try { u ? localStorage.setItem(USER_KEY, JSON.stringify(u)) : localStorage.removeItem(USER_KEY); } catch {  }
 };
 import type { User } from "./types";
 
@@ -36,12 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(u);
     } catch (e) {
       if (e instanceof ApiError) {
-        // Серверот вели дека најавата не важи → одјава.
+
         tokens.clear();
         saveUser(null);
         setUser(null);
       } else {
-        // Мрежна грешка (офлајн): остани најавен со последно познатиот профил.
+
         setUser(cachedUser());
       }
     } finally {

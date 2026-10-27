@@ -91,7 +91,6 @@ class AccommodationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RestaurantViewSet(viewsets.ReadOnlyModelViewSet):
-    """/restaurants/{business_id}/ — пребарување по ID на бизнисот."""
 
     serializer_class = RestaurantSerializer
     queryset = RestaurantProfile.objects.filter(business__verification_status=APPROVED).select_related("business", "business__city").order_by("business__name")
@@ -107,7 +106,6 @@ class BoatTourViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TaxiViewSet(viewsets.ReadOnlyModelViewSet):
-    """/taxi-services/{business_id}/ — пребарување по ID на бизнисот."""
 
     serializer_class = TaxiSerializer
     queryset = TaxiService.objects.filter(business__verification_status=APPROVED).select_related("business", "business__city").order_by("business__name")
@@ -121,12 +119,9 @@ def departure_availability(request, pk):
     return Response(DepartureSerializer(dep).data)
 
 
-# --- Управување од сопственик ----------------------------------------------
-
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def set_unit_availability(request, pk):
-    """Bulk: {start, end, available_units, price_per_night} — end е исклучен."""
     unit = get_object_or_404(AccommodationUnit.objects.select_related("accommodation__business"), pk=pk)
     if not unit.accommodation.business.can_manage(request.user):
         raise PermissionDenied("Не управувате со овој објект.")

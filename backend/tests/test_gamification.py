@@ -37,7 +37,7 @@ def test_duplicate_photo_rejected(tourist, other_tourist, places):
 
 def test_progress_counts_unique_places_not_photos(tourist, places):
     p = places["kaneo"]
-    for i in range(10):  # десет фотографии од Канео = едно место
+    for i in range(10):
         services.create_checkin(tourist, p, jpeg((i * 20, 50, 50)), client_lat=p.lat, client_lng=p.lng)
     ach = CityAchievement.objects.get(user=tourist)
     assert ach.documented_required == 1 and ach.percent == 25.0

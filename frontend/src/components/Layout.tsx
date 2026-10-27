@@ -29,7 +29,6 @@ export default function Layout() {
     api<{ unread: number }>("/notifications/unread-count/").then((r) => setUnread(r.unread)).catch(() => undefined);
   }, [user, loc.pathname]);
 
-  // Затвори го менито и скролај горе при промена на страница.
   useEffect(() => {
     setOpen(false);
     window.scrollTo(0, 0);

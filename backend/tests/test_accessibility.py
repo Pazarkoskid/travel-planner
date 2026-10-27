@@ -22,7 +22,7 @@ def test_wheelchair_plan_excludes_inaccessible_and_warns(tourist, city, places):
     assert places["kaneo"].pk not in run.selected_place_ids
     assert any("непристапни" in w and "Канео" in w for w in trip.warnings)
     item = ItineraryItem.objects.filter(day__trip=trip, place=places["tvrdina"]).first()
-    if item:  # ако е избрана, мора да има предупредување за делумна пристапност
+    if item:
         assert "Делумно пристапно" in item.warning and "Стрмен успон" in item.warning
     assert run.metrics["accessible_share"] is not None
 

@@ -41,7 +41,6 @@ function DetailHero({ img, alt, seed, kicker, title, children }: {
   );
 }
 
-/** Контакт на бизнисот. Телефонот е линк за повик на мобилен. */
 function ContactCard({ b, extra }: { b: Business; extra?: React.ReactNode }) {
   return (
     <aside className="panel contact-card">
@@ -113,8 +112,6 @@ function RequestForm({ b, kind, capacity }: { b: Business; kind: "TAXI" | "RESTA
   );
 }
 
-/* ============================ Сместување ============================ */
-
 export function AccommodationDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -127,7 +124,6 @@ export function AccommodationDetail() {
   const avail = useAsync(
     () => api<{ units: { unit_id: number; unit_name: string; available: boolean; nights: number | null; total: string | null }[] }>(
       `/accommodations/${id}/availability/?check_in=${checkIn}&check_out=${checkOut}`),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [id, checkIn, checkOut, refresh],
   );
   const [msg, setMsg] = useState<string | null>(null);
@@ -208,8 +204,6 @@ export function AccommodationDetail() {
     </div>
   );
 }
-
-/* ============================ Бродска тура ============================ */
 
 function clock(start: string | null, plusMin: number) {
   if (!start) return null;
@@ -346,8 +340,6 @@ export function BoatTourDetail() {
   );
 }
 
-/* ============================ Такси ============================ */
-
 export function TaxiDetail() {
   const { id } = useParams();
   const { data: taxi, error, loading } = useAsync(() => api<TaxiService>(`/taxi-services/${id}/`), [id]);
@@ -394,8 +386,6 @@ export function TaxiDetail() {
     </div>
   );
 }
-
-/* ============================ Ресторан ============================ */
 
 export function RestaurantDetail() {
   const { id } = useParams();

@@ -1,9 +1,3 @@
-"""LLM слој (опционален). Моделот само ИЗБИРА меѓу дадени кандидати по ID.
-
-Излезот се валидира: непознати IDs се отфрлаат, дупликати се игнорираат.
-Ако LLM_PROVIDER=none или повикот не успее, се користи детерминистички
-избор (planner.rule_based_selection).
-"""
 import json
 import logging
 import urllib.request
@@ -51,7 +45,6 @@ def call_llm(prompt):
 
 
 def parse_and_validate(raw, valid_ids, days):
-    """Враќа (days_ids: list[list[int]], reasons: dict, rejected: list, errors: list)."""
     errors, rejected = [], []
     text = raw.strip()
     if "{" in text:

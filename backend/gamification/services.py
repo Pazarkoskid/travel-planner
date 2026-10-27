@@ -1,12 +1,3 @@
-"""Фото-посети, проверка и доделување беџови.
-
-Правила (спецификација, дополнување 23.6):
-* Фотографијата е врзана за конкретно место од базата.
-* GPS од уредот при прикачување е примарен сигнал; EXIF само помага — не му се верува слепо.
-* Дупликати (ист SHA-256) се одбиваат.
-* Беџот се доделува еднаш по место и корисник (unique во базата).
-* Напредокот = уникатни ОДОБРЕНИ задолжителни знаменитости / сите задолжителни знаменитости.
-"""
 import hashlib
 from datetime import datetime, timedelta
 
@@ -35,7 +26,6 @@ def _to_deg(value, ref):
 
 
 def read_exif(fileobj):
-    """Враќа (lat, lng, taken_at) од EXIF ако постојат; инаку None вредности."""
     lat = lng = taken = None
     try:
         fileobj.seek(0)
@@ -77,7 +67,6 @@ def validate_image(fileobj):
 
 
 def decide(place, client, exif):
-    """Враќа (status, distance_m, notes)."""
     radius = place.checkin_radius_m or settings.CHECKIN_DEFAULT_RADIUS_M
     notes = []
     client_d = haversine_m(*client, place.lat, place.lng) if client else None
@@ -212,7 +201,6 @@ def award_for_checkin(checkin):
 
 
 def rule_met(rule, stats):
-    """stats: places (сет „град/место“), cities (сет), categories (Counter по различни места), photos (int)."""
     if not rule:
         return False
     if "city" in rule:
@@ -240,7 +228,6 @@ def user_stats(user):
 
 
 def award_rule_badges(user, checkin=None, unlocked=None):
-    """Беџови од каталогот (градови/предели и достигнувања) според правилата во Badge.rule."""
     unlocked = [] if unlocked is None else unlocked
     stats = user_stats(user)
     for badge in Badge.objects.filter(kind__in=[Badge.Kind.REGION, Badge.Kind.CATEGORY], available=True):

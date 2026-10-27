@@ -4,7 +4,6 @@ from rest_framework.views import exception_handler
 
 
 class ServiceError(APIException):
-    """Грешка од бизнис-логиката со стабилен код за frontend-от."""
 
     status_code = status.HTTP_400_BAD_REQUEST
     default_code = "service_error"
@@ -17,7 +16,6 @@ class ServiceError(APIException):
 
 
 def api_exception_handler(exc, context):
-    """Доследен формат: {"error": {"code", "message", "details"}}."""
     response = exception_handler(exc, context)
     if response is None:
         return None

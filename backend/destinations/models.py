@@ -51,20 +51,17 @@ class Place(models.Model):
     lat = models.FloatField(db_index=True)
     lng = models.FloatField(db_index=True)
     visit_duration_min = models.PositiveIntegerField(default=60)
-    # Цена и работно време се null кога не се проверени — никогаш не се измислуваат.
     price_eur = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     opening_time = models.TimeField(null=True, blank=True)
     closing_time = models.TimeField(null=True, blank=True)
     source = models.CharField(max_length=300, help_text="Извор на податоците")
     verified_at = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.UNVERIFIED)
-    # Официјална листа знаменитости за „Град 100%“ — ја одржува администраторот.
     is_required_landmark = models.BooleanField(default=False)
     checkin_radius_m = models.PositiveIntegerField(default=300)
     image_url = models.URLField(blank=True, max_length=600)
     image_credit = models.CharField(max_length=300, blank=True, help_text="Автор и лиценца на фотографијата")
     wiki_query = models.CharField(max_length=200, blank=True, help_text="Поим за пребарување слика на Wikipedia")
-    # Пристапност за лица со попреченост (OSM: wheelchair=yes/limited/no).
     wheelchair = models.CharField(max_length=8, choices=Wheelchair.choices, default=Wheelchair.UNKNOWN)
     accessibility_notes = models.CharField(max_length=300, blank=True)
 

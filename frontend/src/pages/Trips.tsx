@@ -207,7 +207,6 @@ export function TripDetail() {
           sub: t("{0} до {1}", { 0: hhmm(i.start_time), 1: hhmm(i.end_time) }),
           color: i.source_type === "MEAL" ? "#2bb3b1" : "#08415c",
         })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [current],
   );
 

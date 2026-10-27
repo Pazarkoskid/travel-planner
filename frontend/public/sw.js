@@ -1,22 +1,13 @@
-/* Service worker — Travel Planner Македонија (PWA).
- *
- * Стратегии:
- *  - страници (navigation): прво мрежа, офлајн → зачуван index.html (SPA)
- *  - /assets/*, /badges/*, /brand/*, фонтови, икони: прво кеш (имињата на /assets/ се со hash)
- *  - GET /api/v1/* (освен auth): прво мрежа, офлајн → последниот зачуван одговор
- *  - фотографии (Wikimedia, Supabase) и OSM плочки: кеш со ограничен број записи
- *  - POST/PATCH/DELETE: секогаш мрежа (резервации, check-in не смеат да се „лажат“ офлајн)
- */
 const VERSION = "v3";
 const SHELL = `tpm-shell-${VERSION}`;
 const STATIC = `tpm-static-${VERSION}`;
 const API = "tpm-api";
-const MEDIA = `tpm-media-${VERSION}`; // нова верзија ги брише старите (и погрешно зачуваните) плочки
+const MEDIA = `tpm-media-${VERSION}`;
 const SHELL_FILES = ["/", "/index.html", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png", "/icon-512.png"];
 const LIMITS = { [MEDIA]: 250, [API]: 150 };
 
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // новата верзија веднаш ја заменува старата
+  self.skipWaiting();
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)));
 });
 
@@ -30,7 +21,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data === "skip-waiting") self.skipWaiting();
-  if (event.data === "clear-user-data") caches.delete(API); // при одјава
+  if (event.data === "clear-user-data") caches.delete(API);
 });
 
 async function trim(cacheName) {
@@ -61,7 +52,7 @@ async function networkFirst(request, cacheName) {
     }
     return response;
   } catch (err) {
-    // ignoreVary: одговорите од API имаат Vary (Accept-Language, Authorization, Origin)
+
     const cached = await caches.match(request, { ignoreVary: true });
     if (cached) return cached;
     throw err;
@@ -78,7 +69,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   if (url.pathname.includes("/api/v1/")) {
-    if (url.pathname.includes("/auth/") || url.searchParams.has("format")) return; // токени и извоз — само мрежа
+    if (url.pathname.includes("/auth/") || url.searchParams.has("format")) return;
     event.respondWith(networkFirst(request, API));
     return;
   }
@@ -88,7 +79,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   if (/(^|\.)tile\.openstreetmap\.org$/.test(url.hostname)) {
-    // плочките се бараат со CORS → се зачувуваат само успешните (не грешка 403/429 засекогаш)
+
     event.respondWith(cacheFirst(request, MEDIA, false).catch(() => fetch(request)));
     return;
   }

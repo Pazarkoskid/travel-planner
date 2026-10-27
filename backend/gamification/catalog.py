@@ -1,19 +1,5 @@
-"""Каталог на беџови со слики (frontend/public/badges/).
-
-Податоците се чисти Python структури (без Django import), за да ги користат и
-миграцијата (историски модели) и скриптата за слики (tools/badges.py).
-
-Правила (Badge.rule):
-  {"city": "ohrid"}                         — прва одобрена посета во градот
-  {"places": ["ohrid/kej", ...]}            — посета на кое било од местата
-  {"categories": ["HISTORY"], "min": 3}     — N различни места од категоријата
-  {"photos": 10}                            — N одобрени фото-посети
-Беџ без правило што може да се исполни е „наскоро“ (available=False).
-"""
-
 ART = "/badges/{}.webp"
 
-# Групи → боја на рамката
 GROUPS = {
     "city": ("Град", "#0f4c5c"),
     "water": ("Езеро и вода", "#1b64a8"),
@@ -21,7 +7,6 @@ GROUPS = {
     "heritage": ("Наследство", "#a3462b"),
 }
 
-# (број, slug на сликата, име, група, правило или None)
 LOCATIONS = [
     (1, "skopje", "Скопје", "city", {"city": "skopje"}),
     (2, "ohrid", "Охрид", "city", {"city": "ohrid"}),
@@ -67,7 +52,6 @@ LOCATIONS = [
     (40, "sv_prohor_pchinski", "Св. Прохор Пчињски", "heritage", None),
 ]
 
-# Достигнувања: (code, име, опис, икона, боја, правило или None)
 ACHIEVEMENTS = [
     ("nature-explorer", "Истражувач на природата", "3 природни места или видиковци", "leaf", "#1d7a4f",
      {"categories": ["NATURE", "VIEWPOINT", "BEACH"], "min": 3}),
@@ -84,7 +68,6 @@ ACHIEVEMENTS = [
     ("wine-traveler", "Вински патник", "Винарии во Тиквешијата — наскоро", "wine", "#7d1f3a", None),
 ]
 
-# Слики за постоечките беџови (код → слика)
 EXISTING_ART = {
     "explorer": "explorer",
     "macedonia-explorer": "macedonia-100",
@@ -94,7 +77,6 @@ EXISTING_ART = {
 }
 
 
-# Печати за знаменитости (стил „печат во пасош“): „град/место“ → (кратко име за печатот, мотив, категорија)
 STAMP_INK = {
     "RELIGIOUS": "#8a2f3c", "HISTORY": "#8a5a12", "MUSEUM": "#2f4f8a", "CULTURE": "#1f6a5a",
     "VIEWPOINT": "#2f6b34", "NATURE": "#2f6b34", "BEACH": "#1b64a8",
@@ -128,7 +110,6 @@ PLACE_STAMPS = {
 }
 
 
-# Англиски имиња/описи (за англискиот интерфејс)
 GROUPS_EN = {"city": "City", "water": "Lakes & water", "nature": "Nature", "heritage": "Heritage"}
 LOCATION_NAMES_EN = {
     1: "Skopje", 2: "Ohrid", 3: "Bitola", 4: "Struga", 5: "Kruševo", 6: "Prilep", 7: "Tetovo", 8: "Štip", 9: "Veles",
@@ -150,7 +131,6 @@ ACHIEVEMENTS_EN = {
 
 
 def badge_text_en():
-    """Мапа македонски → англиски за имиња и описи на беџовите од каталогот."""
     out = {}
     for num, _slug, name, group, _rule in LOCATIONS:
         out[name] = LOCATION_NAMES_EN[num]
@@ -178,7 +158,6 @@ def art_for_code(code):
 
 
 def sync_catalog(Badge):
-    """Создава/ажурира REGION и CATEGORY беџови и ги поставува сликите. Идемпотентно."""
     for num, slug, name, group, rule in LOCATIONS:
         Badge.objects.update_or_create(code=f"region-{slug.replace('_', '-')}", defaults={
             "name": name, "description": f"{GROUPS[group][0]} — колекција „Македонија“",
@@ -191,7 +170,6 @@ def sync_catalog(Badge):
     order = {"explorer": 50, "city-ohrid-100": 60, "city-skopje-100": 61, "city-bitola-100": 62, "macedonia-explorer": 99}
     for code, art in EXISTING_ART.items():
         Badge.objects.filter(code=code).update(art=ART.format(art), sort=order.get(code, 0))
-    # Печати за знаменитости (место без печат во каталогот останува со иконата 📸).
     for key in PLACE_STAMPS:
         city, slug = key.split("/")
         Badge.objects.filter(code=f"place-{city}-{slug}").update(art=ART.format(stamp_art(key)))

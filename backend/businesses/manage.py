@@ -1,9 +1,3 @@
-"""Уредување на понуди од сопственик/оператор (и администратор).
-
-Секој endpoint проверува `business.can_manage(user)` на серверот. Туѓ бизнис → 404,
-за да не се открива дека постои. Верификацијата и „спонзорирано“ ги менува само
-администраторот (core/views.py, Django admin).
-"""
 import re
 from decimal import Decimal
 
@@ -34,8 +28,6 @@ def _managed(model, user, **lookup):
         raise NotFound("Не постои.")
     return obj
 
-
-# --- Серијализатори за уредување -------------------------------------------
 
 class BusinessEditSerializer(serializers.ModelSerializer):
     class Meta:
@@ -146,8 +138,6 @@ class TaxiEditSerializer(serializers.ModelSerializer):
         fields = ("service_area", "passenger_capacity", "base_fare", "per_km", "available_24h", "vehicles",
                   "languages", "fare_info")
 
-
-# --- Преглед на сопствени бизниси ------------------------------------------
 
 def _business_payload(b):
     data = BusinessEditSerializer(b).data
@@ -281,7 +271,6 @@ def edit_boat_tour(request, pk):
 @api_view(["POST"])
 @permission_classes(AUTH)
 def cancel_departure(request, pk):
-    """Откажува поаѓање. Постоечките барања се откажуваат и туристите се известуваат."""
     from reservations.models import Reservation
     from reservations.services import transition
 
@@ -295,7 +284,7 @@ def cancel_departure(request, pk):
     count = 0
     for res in affected:
         target = Reservation.Status.REJECTED if res.status == Reservation.Status.PENDING else Reservation.Status.CANCELLED
-        transition(res.pk, target, request.user, note)  # ослободува места и го известува туристот
+        transition(res.pk, target, request.user, note)
         count += 1
     dep.refresh_from_db()
     dep.status = "CANCELLED"

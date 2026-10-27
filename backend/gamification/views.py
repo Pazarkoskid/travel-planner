@@ -150,7 +150,6 @@ def _with_likes(qs, request):
 @api_view(["POST", "DELETE"])
 @permission_classes([permissions.IsAuthenticated])
 def like_photo(request, pk):
-    """POST = лајк, DELETE = отстрани лајк. Само јавни, одобрени и нескриени фотографии."""
     from .models import PhotoLike
 
     photo = get_object_or_404(PlacePhoto.objects.select_related("user", "place"), pk=pk, is_public=True,
@@ -182,7 +181,6 @@ def badges(request):
 def my_gamification(request):
     u = request.user
     achievements = {a.city_id: a for a in CityAchievement.objects.filter(user=u).select_related("city")}
-    # Прикажи напредок и за градови каде уште нема посета.
     progress = []
     for city in City.objects.all():
         a = achievements.get(city.id)
@@ -238,7 +236,6 @@ def public_profile(request, username):
 def my_photo(request, pk):
     photo = get_object_or_404(PlacePhoto, pk=pk, user=request.user)
     if request.method == "DELETE":
-        # Беџот останува: доказот е веќе проверен; фотографијата исчезнува од галеријата.
         photo.is_public = False
         photo.is_hidden = True
         photo.save(update_fields=["is_public", "is_hidden"])
@@ -261,8 +258,6 @@ def report_photo(request, pk):
     _, created = PlaceReport.objects.get_or_create(photo=photo, reporter=request.user, defaults={"reason": reason[:500]})
     return Response({"reported": True, "already_reported": not created}, status=201 if created else 200)
 
-
-# --- Администрација ---------------------------------------------------------
 
 @api_view(["GET"])
 @permission_classes([IsAdminRole])

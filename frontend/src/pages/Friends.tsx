@@ -32,7 +32,6 @@ export default function FriendsPage() {
   const [results, setResults] = useState<Person[] | null>(null);
   const [searching, setSearching] = useState(false);
 
-  // Пребарување со мало доцнење додека се пишува.
   useEffect(() => {
     const term = q.trim();
     if (term.length < 2) { setResults(null); return; }

@@ -1,10 +1,3 @@
-"""Корисни објекти за туристи од OpenStreetMap (Overpass API): пекари, маркети, менувачници, трафики…
-
-* Податоците се © OpenStreetMap contributors (ODbL) — се прикажува атрибуција.
-* Се бара круг околу центарот на градот; резултатот се кешира (AMENITIES_CACHE_SECONDS), за да не се
-  оптоварува јавниот Overpass сервер.
-* Ако Overpass не е достапен, се враќа последниот кеширан одговор или празна листа со порака.
-"""
 import json
 import logging
 import urllib.parse
@@ -17,7 +10,6 @@ from .exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
 
-# категорија → OSM услови (Overpass QL, за node/way)
 CATEGORIES = {
     "bakery": ['["shop"="bakery"]', '["shop"="pastry"]'],
     "market": ['["shop"="supermarket"]', '["shop"="convenience"]', '["shop"="greengrocer"]', '["amenity"="marketplace"]'],
@@ -51,7 +43,6 @@ AMENITY_RE = "^(marketplace|bureau_de_change|atm|pharmacy)$"
 
 
 def build_query(lat, lng, radius_m, categories=None):
-    """Едно лесно барање со регуларни изрази наместо 30 посебни услови."""
     around = f"(around:{radius_m},{lat:.5f},{lng:.5f})"
     return (f'[out:json][timeout:20];(nwr["shop"~"{SHOP_RE}"]{around};'
             f'nwr["amenity"~"{AMENITY_RE}"]{around};);out center tags 500;')
@@ -63,7 +54,6 @@ def _endpoints():
 
 
 def _fetch(query):
-    """Пробува повеќе јавни Overpass сервери по ред; враќа првиот успешен одговор."""
     data = urllib.parse.urlencode({"data": query}).encode()
     errors = []
     for url in _endpoints():
@@ -121,7 +111,7 @@ def get_amenities(city, radius_m=None):
     query = build_query(city.center_lat, city.center_lng, radius_m)
     try:
         items = parse(_fetch(query))
-    except Exception as exc:  # мрежа, timeout, 429 од Overpass
+    except Exception as exc:
         logger.warning("Overpass error for %s: %s", city.slug, exc)
         stale = cache.get(stale_key)
         if stale is not None:

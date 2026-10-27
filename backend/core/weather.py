@@ -1,9 +1,3 @@
-"""Временска прогноза преку OpenWeather (бесплатни API-ја: current weather + 5 day / 3 hour forecast).
-
-* Клучот е само на серверот (OPENWEATHER_API_KEY) — никогаш во frontend.
-* Резултатите се кешираат (WEATHER_CACHE_SECONDS) по заокружени координати, за да не се троши квотата.
-* Прогнозата е до 5 дена однапред и е неизвесна; frontend-от го кажува тоа.
-"""
 import json
 import logging
 import urllib.error
@@ -39,7 +33,6 @@ def _summarize_daily(forecast):
     for day, items in sorted(days.items()):
         temps_min = [i["main"]["temp_min"] for _, i in items]
         temps_max = [i["main"]["temp_max"] for _, i in items]
-        # Иконата и описот за денот се од терминот најблиску до пладне.
         midday = min(items, key=lambda x: abs(x[0].hour - 13))[1]
         descriptions = Counter(i["weather"][0]["description"] for _, i in items)
         out.append({
@@ -73,7 +66,7 @@ def get_weather(lat, lng, lang="mk"):
                                "проверете дали е точно копиран и дали е-поштата е потврдена.",
                                code="weather_invalid_key", status_code=503)
         raise ServiceError("Прогнозата моментално не е достапна.", code="weather_unavailable", status_code=503)
-    except Exception as exc:  # мрежа, timeout
+    except Exception as exc:
         logger.warning("OpenWeather error: %s", exc)
         raise ServiceError("Прогнозата моментално не е достапна.", code="weather_unavailable", status_code=503)
     data = {

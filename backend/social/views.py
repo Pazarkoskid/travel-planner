@@ -1,12 +1,3 @@
-"""Пребарување корисници и пријатели.
-
-GET    /people/search/?q=           јавни профили (и пријатели) по корисничко име или име и презиме
-GET    /friends/                    {friends, incoming, outgoing}
-POST   /friends/requests/           {"username": "..."} — ако другиот веќе ви испратил, веднаш сте пријатели
-POST   /friends/requests/<id>/accept/   само примачот
-POST   /friends/requests/<id>/decline/  само примачот (барањето се брише)
-DELETE /friends/<username>/         отстрани пријател или откажи испратено барање
-"""
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
@@ -30,7 +21,6 @@ class SearchThrottle(UserRateThrottle):
 
 
 def _relation(me, other, rel):
-    """none | friends | outgoing | incoming (+ id на барањето)."""
     f = rel.get(other.id)
     if not f:
         return "none", None
@@ -81,7 +71,6 @@ def search(request):
         Q(from_user=me) | Q(to_user=me), status=Friendship.Status.ACCEPTED
     ).values_list("from_user_id", "to_user_id")
     friends = {i for pair in friend_ids for i in pair} - {me.id}
-    # Приватни профили се наоѓаат само ако веќе сте пријатели.
     qs = (_annotated(User.objects.filter(cond, is_active=True).exclude(pk=me.pk)
                      .filter(Q(is_profile_public=True) | Q(pk__in=friends)))
           .order_by("username")[:MAX_RESULTS])
@@ -126,7 +115,6 @@ def send_request(request):
                 raise ServiceError("Веќе сте пријатели.", code="already_friends", status_code=409)
             if existing.from_user_id == me.id:
                 raise ServiceError("Барањето е веќе испратено.", code="request_exists", status_code=409)
-            # Другиот веќе ви испратил барање → прифаќање.
             existing.status, existing.accepted_at = Friendship.Status.ACCEPTED, timezone.now()
             existing.save(update_fields=["status", "accepted_at"])
             notify(target, "friend", f"{me.username} го прифати вашето барање за пријателство", "", existing)

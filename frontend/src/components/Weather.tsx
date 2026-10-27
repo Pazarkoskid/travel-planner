@@ -7,7 +7,6 @@ import type { Weather as WeatherData, WeatherDay } from "../types";
 const DAYS = [t("нед"), t("пон"), t("вто"), t("сре"), t("чет"), t("пет"), t("саб")];
 const icon = (code: string) => `https://openweathermap.org/img/wn/${code}@2x.png`;
 
-// Кеш во меморијата за сесијата — една страница може да има неколку виџети за ист град.
 const memo = new Map<string, Promise<WeatherData>>();
 
 export function useWeather(query: string | null) {
@@ -28,12 +27,11 @@ export function useWeather(query: string | null) {
   return { data, error };
 }
 
-/** Целосен виџет: моментално време + неколку дена. */
 export default function WeatherCard({ query, title }: { query: string; title?: string }) {
   const { data, error } = useWeather(query);
   const { user } = useAuth();
   if (error === "weather_not_configured") {
-    // Туристите не гледаат празна кутија; администраторот гледа како да ја вклучи.
+
     return user?.role === "ADMIN" ? (
       <div className="weather weather-muted small">
         <strong>{t("Временската прогноза не е вклучена.")}</strong> {t("Додајте")} <code>OPENWEATHER_API_KEY=…</code> {t("во датотеката")}
@@ -78,7 +76,6 @@ function DayCell({ d }: { d: WeatherDay }) {
   );
 }
 
-/** Мал знак за ден од план или поаѓање — само ако денот е во прозорецот на прогнозата. */
 export function WeatherChip({ query, date }: { query: string; date: string }) {
   const { data } = useWeather(query);
   const day = data?.daily.find((d) => d.date === date);

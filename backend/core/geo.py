@@ -1,14 +1,7 @@
-"""Географски помошни функции без зависност од PostGIS/GDAL.
-
-Растојанијата се пресметуваат со формулата на Haversine. За пребарување по
-близина прво се користи bounding box (брз филтер во базата), па потоа точно
-растојание во Python. Со PostGIS ова може да се замени со ST_DWithin.
-"""
 import math
 
 EARTH_RADIUS_KM = 6371.0088
 
-# Просечни брзини (km/h) и фактор за заобиколување на патот наспроти права линија.
 SPEEDS_KMH = {"walking": 4.5, "car": 35.0, "public": 20.0, "bicycle": 14.0}
 DETOUR_FACTOR = {"walking": 1.25, "car": 1.35, "public": 1.4, "bicycle": 1.3}
 
@@ -32,10 +25,9 @@ def bounding_box(lat, lng, radius_km):
 
 
 def estimate_travel(lat1, lng1, lat2, lng2, transport="car"):
-    """Враќа (km по пат, минути) како проценка. Не е реално рутирање."""
     transport = transport if transport in SPEEDS_KMH else "car"
     km = haversine_km(lat1, lng1, lat2, lng2) * DETOUR_FACTOR[transport]
     minutes = km / SPEEDS_KMH[transport] * 60
     if transport in ("car", "public") and km > 0.05:
-        minutes += 5  # паркирање / чекање
+        minutes += 5
     return round(km, 2), round(minutes, 1)

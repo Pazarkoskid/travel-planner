@@ -8,7 +8,6 @@ import MapView from "../components/MapView";
 import Icon from "../components/Icon";
 import type { City, Departure, MenuItem, TourStop } from "../types";
 
-/* ---------- Типови од /business/my/ ---------- */
 interface AccEdit {
   id: number; title: string; property_type: string; description: string; max_guests: number; bedrooms: number; beds: number;
   amenities: string[]; rules: string; cleaning_fee: string; free_cancellation_days: number; image_url: string;
@@ -35,7 +34,6 @@ const AMENITIES: [string, string][] = [["wifi", "Wi-Fi"], ["ac", t("Клима")
 const DAYS: [string, string][] = [["mon", t("Понеделник")], ["tue", t("Вторник")], ["wed", t("Среда")], ["thu", t("Четврток")],
   ["fri", t("Петок")], ["sat", t("Сабота")], ["sun", t("Недела")]];
 
-/** Форма со копче „Зачувај“, порака по успех и грешка од серверот. */
 function SaveForm({ title, onSave, children, saveLabel = t("Зачувај промени") }: {
   title: string; onSave: () => Promise<unknown>; children: ReactNode; saveLabel?: string;
 }) {
@@ -68,7 +66,6 @@ function SaveForm({ title, onSave, children, saveLabel = t("Зачувај пр�
 
 const num = (v: string) => (v === "" ? null : v);
 
-/* ================= Профил ================= */
 function ProfileForm({ b, onSaved }: { b: MyBusiness; onSaved: (x: MyBusiness) => void }) {
   const [f, setF] = useState({ name: b.name, description: b.description, address: b.address, phone: b.phone, email: b.email,
     website: b.website, image_url: b.image_url, lat: String(b.lat), lng: String(b.lng) });
@@ -94,7 +91,6 @@ function ProfileForm({ b, onSaved }: { b: MyBusiness; onSaved: (x: MyBusiness) =
   );
 }
 
-/* ================= Сместување ================= */
 function AccommodationForm({ a, onSaved }: { a: AccEdit; onSaved: () => void }) {
   const [f, setF] = useState({ ...a, cleaning_fee: String(a.cleaning_fee) });
   const set = (k: string) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
@@ -182,7 +178,6 @@ function NewAccommodation({ businessId, onCreated }: { businessId: number; onCre
   );
 }
 
-/* ================= Ресторан ================= */
 function RestaurantForm({ b, onSaved }: { b: MyBusiness; onSaved: () => void }) {
   const r = b.restaurant!;
   const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>(
@@ -239,7 +234,6 @@ function RestaurantForm({ b, onSaved }: { b: MyBusiness; onSaved: () => void }) 
   );
 }
 
-/* ================= Бродска тура ================= */
 function TourForm({ tour, onSaved }: { tour: TourEdit; onSaved: () => void }) {
   const [f, setF] = useState({ title: tour.title, route: tour.route, description: tour.description, includes: tour.includes, rules: tour.rules,
     duration_min: String(tour.duration_min), price_per_person: String(tour.price_per_person), departure_point: tour.departure_point });
@@ -367,7 +361,6 @@ function NewTour({ businessId, onCreated }: { businessId: number; onCreated: () 
   );
 }
 
-/* ================= Такси ================= */
 function TaxiForm({ b, onSaved }: { b: MyBusiness; onSaved: () => void }) {
   const taxi = b.taxi!;
   const [f, setF] = useState({ ...taxi, base_fare: taxi.base_fare ?? "", per_km: taxi.per_km ?? "", passenger_capacity: String(taxi.passenger_capacity) });
@@ -392,7 +385,6 @@ function TaxiForm({ b, onSaved }: { b: MyBusiness; onSaved: () => void }) {
   );
 }
 
-/* ================= Страници ================= */
 export function BusinessEditPage() {
   const { id } = useParams();
   const { data, error, loading, reload, setData } = useAsync(() => api<MyBusiness>(`/business/my/${id}/`), [id]);

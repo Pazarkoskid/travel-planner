@@ -5,7 +5,6 @@ import { api } from "../services/api";
 import { t } from "../i18n";
 import Icon from "./Icon";
 
-/** Лајк на фотографија: оптимистички приказ, враќање при грешка. */
 export default function LikeButton({ id, count, liked }: { id: number; count: number; liked: boolean }) {
   const { user } = useAuth();
   const [state, setState] = useState({ count, liked });

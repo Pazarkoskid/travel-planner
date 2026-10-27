@@ -1,4 +1,3 @@
-// PWA: регистрација на service worker, инсталирање, офлајн и нова верзија.
 import { useEffect, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -28,9 +27,9 @@ export function registerServiceWorker() {
           if (sw.state === "installed" && navigator.serviceWorker.controller) { updateReady = sw; notify(); }
         });
       });
-    } catch { /* PWA е дополнување; апликацијата работи и без неа */ }
+    } catch {  }
   });
-  // Освежи само при ажурирање (веќе постоел контролер), не при првата инсталација.
+
   const hadController = !!navigator.serviceWorker.controller;
   let reloading = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {

@@ -101,8 +101,6 @@ def accept_proposal(request, pk):
     return _out(request, res, status=200)
 
 
-# --- Бизнис ---------------------------------------------------------------
-
 @api_view(["GET"])
 @permission_classes(AUTH)
 def business_reservations(request):
@@ -119,7 +117,6 @@ def business_reservations(request):
 def business_reservation_action(request, pk):
     res = get_object_or_404(Reservation.objects.select_related("business"), pk=pk)
     if not res.business.can_manage(request.user):
-        # 404 наместо 403 — не откриваме туѓи резервации.
         return Response({"error": {"code": "not_found", "message": "Не постои.", "details": None}}, status=404)
     d = BusinessActionIn(data=request.data)
     d.is_valid(raise_exception=True)

@@ -28,7 +28,6 @@ class CityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PlaceViewSet(viewsets.ReadOnlyModelViewSet):
-    """GET /places/?city=&category=&near=lat,lng&radius_km=&required=1"""
 
     serializer_class = PlaceSerializer
 

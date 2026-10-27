@@ -12,8 +12,6 @@ from reservations import services
 from .conftest import client_for
 
 
-# --- Уредување од бизнис ------------------------------------------------------
-
 def test_owner_edits_own_tour_but_not_others(owner, other_owner, departure):
     tour = departure.tour
     payload = {"description": "Нов опис", "stops": [
@@ -73,8 +71,6 @@ def test_cancel_departure_releases_and_rejects(tourist, owner, departure):
     assert res.status == "REJECTED" and departure.reserved_seats == 0
 
 
-# --- Администраторски каталог -------------------------------------------------
-
 def test_admin_sets_price_and_hours_marks_verified(admin_user, places):
     p = places["kaneo"]
     r = client_for(admin_user).patch(f"/api/v1/admin/places/{p.pk}/", {"price_eur": "3.00", "opening_time": "09:00",
@@ -93,8 +89,6 @@ def test_admin_hours_validation_and_permissions(admin_user, owner, places):
     assert client_for(owner).patch(f"/api/v1/admin/places/{p.pk}/", {"price_eur": "1"}, format="json").status_code == 403
 
 
-# --- Детали за огласи ---------------------------------------------------------
-
 def test_public_detail_pages(owner, city, departure):
     taxi = Business.objects.create(owner=owner, name="Такси", type="TAXI", city=city, lat=41.1, lng=20.8,
                                    phone="+389 00 000 000", verification_status="APPROVED")
@@ -108,8 +102,6 @@ def test_public_detail_pages(owner, city, departure):
     rows = listing["results"] if isinstance(listing, dict) else listing
     assert len(detail["upcoming_departures"]) == 16 and len(rows[0]["upcoming_departures"]) == 10
 
-
-# --- Временска прогноза -------------------------------------------------------
 
 def fake_ow(path, lat, lng, lang="mk"):
     if path == "weather":
@@ -134,7 +126,7 @@ def test_weather_summary_and_cache(settings, city):
     with mock.patch.object(weather, "_get", side_effect=fake_ow) as m:
         r1 = client_for().get(f"/api/v1/weather/?city={city.slug}").json()
         client_for().get(f"/api/v1/weather/?city={city.slug}")
-    assert m.call_count == 2  # втор повик од кеш
+    assert m.call_count == 2
     assert r1["current"]["temp"] == 21 and r1["location"] == "Охрид"
     assert r1["daily"][0]["icon"].endswith("d") and r1["daily"][0]["pop"] == 20
 
@@ -163,8 +155,6 @@ def test_weather_invalid_key_is_explained(settings, city):
         r = client_for().get(f"/api/v1/weather/?city={city.pk}")
     assert r.status_code == 503 and r.json()["error"]["code"] == "weather_invalid_key"
 
-
-# --- Deploy (Render + Supabase) -------------------------------------------------
 
 def test_database_url_transaction_pooler_settings(monkeypatch):
     import importlib

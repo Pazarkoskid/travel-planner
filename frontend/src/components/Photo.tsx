@@ -7,7 +7,6 @@ const TONES = [
   ["#2d5a4a", "#7fae7a"],
 ];
 
-/** Фотографија со автор/лиценца и уреден fallback кога сликата ја нема или не се вчитува. */
 export default function Photo({ src, alt, credit, seed = 0, className = "", eager = false, showCredit = false }: {
   src?: string;
   alt: string;

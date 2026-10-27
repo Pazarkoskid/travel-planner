@@ -4,7 +4,6 @@ from django.db.models import Q
 
 
 class Friendship(models.Model):
-    """Барање за пријателство: from_user → to_user. По прифаќање важи во двете насоки."""
 
     class Status(models.TextChoices):
         PENDING = "PENDING", "Чека одговор"

@@ -1,9 +1,3 @@
-"""Оптимизација на редоследот на посети со Google OR-Tools.
-
-Отворен TSP: почнува од стартна точка (сместување или центар на град),
-може да заврши на која било локација. Ако OR-Tools не е достапен, се
-користи nearest-neighbour + 2-opt.
-"""
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +19,7 @@ def _nearest_neighbour(minutes, nodes, start=0):
         remaining.remove(nxt)
         cur = nxt
     improved = True
-    while improved:  # 2-opt
+    while improved:
         improved = False
         for i in range(len(order) - 1):
             for k in range(i + 1, len(order)):
@@ -36,18 +30,16 @@ def _nearest_neighbour(minutes, nodes, start=0):
 
 
 def optimize_order(minutes, time_limit_s=0.3):
-    """minutes: (n+1)x(n+1) матрица, индекс 0 е стартот. Враќа ред на индекси 1..n."""
     n = len(minutes) - 1
     nodes = list(range(1, n + 1))
     if n <= 2:
         return _nearest_neighbour(minutes, nodes)
     try:
         from ortools.constraint_solver import pywrapcp, routing_enums_pb2
-    except ImportError:  # pragma: no cover
+    except ImportError:
         logger.warning("OR-Tools not installed; using heuristic")
         return _nearest_neighbour(minutes, nodes)
 
-    # Додаваме „фиктивен“ крај (индекс n+1) со нула цена → отворена рута.
     size = n + 2
     scaled = [[0] * size for _ in range(size)]
     for i in range(n + 1):
@@ -74,6 +66,5 @@ def optimize_order(minutes, time_limit_s=0.3):
         if 1 <= node <= n:
             order.append(node)
         idx = solution.Value(routing.NextVar(idx))
-    # Гаранција: никогаш полошо од хеуристиката.
     heuristic = _nearest_neighbour(minutes, nodes)
     return order if route_cost(order, minutes) <= route_cost(heuristic, minutes) else heuristic

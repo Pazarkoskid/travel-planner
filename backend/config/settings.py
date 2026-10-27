@@ -1,8 +1,3 @@
-"""Django settings for AI Travel Planner Macedonia.
-
-Сите тајни и конфигурации се читаат од environment variables.
-Без POSTGRES_DB се користи SQLite за брз локален развој и тестови.
-"""
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -11,14 +6,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def load_dotenv():
-    """Чита KEY=VALUE од .env (во root на проектот или во backend/), без надворешна библиотека.
-
-    Вредностите од вистинскиот environment имаат предност.
-    """
     for path in (BASE_DIR.parent / ".env", BASE_DIR / ".env"):
         if not path.exists():
             continue
-        for line in path.read_text(encoding="utf-8-sig").splitlines():  # utf-8-sig: Notepad BOM
+        for line in path.read_text(encoding="utf-8-sig").splitlines():
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:
                 continue
@@ -38,7 +29,6 @@ def env_bool(name, default=False):
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,backend").split(",") if h.strip()]
-# Render го поставува RENDER_EXTERNAL_HOSTNAME (пр. travel-backend.onrender.com).
 if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 
@@ -95,13 +85,11 @@ TEMPLATES = [
 ]
 
 if os.environ.get("DATABASE_URL"):
-    # Supabase / Render / било кој PostgreSQL преку еден connection string.
     import dj_database_url
 
     _db = dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600, conn_health_checks=True,
                                 ssl_require=env_bool("DATABASE_SSL", True))
     if _db.get("PORT") in (6543, "6543"):
-        # Supabase transaction pooler (Supavisor :6543): без серверски курсори и без трајни конекции.
         _db["DISABLE_SERVER_SIDE_CURSORS"] = True
         _db["CONN_MAX_AGE"] = 0
     DATABASES = {"default": _db}
@@ -144,18 +132,14 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Статични фајлови (Django admin) ги служи WhiteNoise — без посебен сервер.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
                     if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
-# Медиуми (фото-посети, аватари) во Supabase Storage преку S3 API.
-# Render (free) нема траен диск — без ова качените фотографии се губат при секој deploy.
-SUPABASE_S3_ENDPOINT = os.environ.get("SUPABASE_S3_ENDPOINT", "")  # https://<ref>.storage.supabase.co/storage/v1/s3
+SUPABASE_S3_ENDPOINT = os.environ.get("SUPABASE_S3_ENDPOINT", "")
 if SUPABASE_S3_ENDPOINT:
-    # boto3 >= 1.36 праќа нови checksum заглавја кои S3-компатибилните сервиси не секогаш ги примаат.
     os.environ.setdefault("AWS_REQUEST_CHECKSUM_CALCULATION", "when_required")
     os.environ.setdefault("AWS_RESPONSE_CHECKSUM_VALIDATION", "when_required")
     _bucket = os.environ.get("SUPABASE_S3_BUCKET", "media")
@@ -173,7 +157,6 @@ if SUPABASE_S3_ENDPOINT:
             "default_acl": None,
             "file_overwrite": False,
             "querystring_auth": False,
-            # Јавен bucket → трајни јавни URL-и без потпис.
             "custom_domain": f"{_ref}.supabase.co/storage/v1/object/public/{_bucket}",
         },
     }
@@ -184,7 +167,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
     "EXCEPTION_HANDLER": "core.exceptions.api_exception_handler",
-    # ?format= го користиме за извоз (csv), не за избор на renderer.
     "URL_FORMAT_OVERRIDE": None,
     "DEFAULT_RENDERER_CLASSES": ("core.renderers.LangJSONRenderer", "rest_framework.renderers.BrowsableAPIRenderer"),
     "DEFAULT_THROTTLE_CLASSES": (
@@ -219,25 +201,19 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# --- AI ---------------------------------------------------------------
-# LLM_PROVIDER: "none" (правила + OR-Tools) или "anthropic".
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "none")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 LLM_MODEL = os.environ.get("LLM_MODEL", "claude-sonnet-5-5")
 LLM_TIMEOUT_SECONDS = int(os.environ.get("LLM_TIMEOUT_SECONDS", "25"))
 
-# --- Рутирање ---------------------------------------------------------
-# ROUTING_PROVIDER: "haversine" (без надворешен сервис) или "osrm".
 ROUTING_PROVIDER = os.environ.get("ROUTING_PROVIDER", "haversine")
 OSRM_URL = os.environ.get("OSRM_URL", "https://router.project-osrm.org")
 ROUTING_TIMEOUT_SECONDS = int(os.environ.get("ROUTING_TIMEOUT_SECONDS", "8"))
 
-# --- Временска прогноза (OpenWeather) ---------------------------------
 OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 WEATHER_CACHE_SECONDS = int(os.environ.get("WEATHER_CACHE_SECONDS", "1800"))
 WEATHER_TIMEOUT_SECONDS = int(os.environ.get("WEATHER_TIMEOUT_SECONDS", "8"))
 
-# --- Корисни објекти на мапа (OpenStreetMap / Overpass) -----------------
 OVERPASS_URL = os.environ.get("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
 OVERPASS_TIMEOUT_SECONDS = int(os.environ.get("OVERPASS_TIMEOUT_SECONDS", "15"))
 OVERPASS_FALLBACK_URLS = [u for u in os.environ.get("OVERPASS_FALLBACK_URLS", (
@@ -246,7 +222,6 @@ OVERPASS_FALLBACK_URLS = [u for u in os.environ.get("OVERPASS_FALLBACK_URLS", (
 AMENITIES_CACHE_SECONDS = int(os.environ.get("AMENITIES_CACHE_SECONDS", str(12 * 3600)))
 AMENITIES_RADIUS_M = int(os.environ.get("AMENITIES_RADIUS_M", "3000"))
 
-# --- Гејмификација ----------------------------------------------------
 CHECKIN_DEFAULT_RADIUS_M = int(os.environ.get("CHECKIN_DEFAULT_RADIUS_M", "300"))
 MACEDONIA_EXPLORER_MIN_CITIES = int(os.environ.get("MACEDONIA_EXPLORER_MIN_CITIES", "3"))
 MAX_PHOTO_BYTES = int(os.environ.get("MAX_PHOTO_BYTES", str(8 * 1024 * 1024)))

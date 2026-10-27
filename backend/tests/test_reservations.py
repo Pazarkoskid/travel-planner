@@ -11,13 +11,13 @@ from reservations.models import Reservation
 
 from .conftest import client_for
 
-D = lambda n: date.today() + timedelta(days=n)  # noqa: E731
+D = lambda n: date.today() + timedelta(days=n)
 
 
 def test_booking_snapshot_price_and_items(tourist, accommodation):
     res = services.create_accommodation_booking(tourist, accommodation, D(3), D(5), 2)
     assert res.status == "PENDING"
-    assert res.total_price == 110  # 2 × 50 + 10 чистење
+    assert res.total_price == 110
     assert res.items.count() == 3
     assert not AccommodationAvailability.objects.filter(unit=accommodation, date__in=[D(3), D(4)],
                                                         available_units__gt=0).exists()
@@ -27,7 +27,6 @@ def test_no_double_booking(tourist, other_tourist, accommodation):
     services.create_accommodation_booking(tourist, accommodation, D(3), D(5), 1)
     with pytest.raises(ServiceError):
         services.create_accommodation_booking(other_tourist, accommodation, D(4), D(6), 1)
-    # Неуспешното барање не смее да намали достапност за D(5).
     assert AccommodationAvailability.objects.get(unit=accommodation, date=D(5)).available_units == 1
 
 

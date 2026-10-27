@@ -9,13 +9,12 @@ function readDismissed() {
   try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; }
 }
 
-/** Ленти за офлајн режим, нова верзија и покана за инсталирање (само на мобилен). */
 export function PwaBanners() {
   const pwa = usePwa();
   const [dismissed, setDismissed] = useState(readDismissed);
   const dismiss = () => {
     setDismissed(true);
-    try { localStorage.setItem(DISMISS_KEY, "1"); } catch { /* приватен режим */ }
+    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {  }
   };
   return (
     <>
@@ -47,7 +46,6 @@ export function PwaBanners() {
   );
 }
 
-/** Ставка во менито/footer-от: се прикажува само кога прелистувачот дозволува инсталирање. */
 export function InstallLink({ className = "sheet-link" }: { className?: string }) {
   const pwa = usePwa();
   if (pwa.installed || !pwa.canInstall) return null;

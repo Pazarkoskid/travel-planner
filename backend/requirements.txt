@@ -5,14 +5,10 @@ django-cors-headers>=4.4
 Pillow>=10.4
 pytest>=8.0
 pytest-django>=4.8
-# OR-Tools и psycopg немаат wheel-ови за најновите Python верзии.
-# Без OR-Tools планерот користи вградена 2-opt хеуристика (trips/optimizer.py).
-# psycopg е потребен само за PostgreSQL (Docker); локално се користи SQLite.
 ortools>=9.10; python_version < "3.14"
 psycopg[binary]>=3.2; python_version < "3.14"
 gunicorn>=22.0; sys_platform != "win32"
 reportlab>=4.2
-# Продукција (Render + Supabase)
 dj-database-url>=2.2
 whitenoise>=6.7
 django-storages[s3]>=1.14

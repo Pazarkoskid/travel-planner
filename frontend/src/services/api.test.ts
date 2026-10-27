@@ -26,7 +26,7 @@ describe("api со стар токен", () => {
     const cities = await api<{ name: string }[]>("/cities/");
     expect(cities[0].name).toBe("Охрид");
     expect(tokens.get()).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(3); // со токен → refresh → без токен
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("паралелни барања делат едно освежување", async () => {

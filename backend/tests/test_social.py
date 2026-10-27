@@ -20,9 +20,9 @@ def hidden(db):
 def test_search_by_username_and_name_excludes_self_and_private(tourist, ana, hidden):
     c = client_for(tourist)
     by_name = c.get("/api/v1/people/search/?q=Марија").json()
-    assert [r["username"] for r in by_name] == ["marija"]  # приватниот профил не се гледа
+    assert [r["username"] for r in by_name] == ["marija"]
     assert by_name[0]["relation"] == "none" and by_name[0]["name"] == "Марија Петрова"
-    assert c.get("/api/v1/people/search/?q=a").json() == []  # минимум 2 знаци
+    assert c.get("/api/v1/people/search/?q=a").json() == []
     assert tourist.username not in [r["username"] for r in c.get(f"/api/v1/people/search/?q={tourist.username}").json()]
     assert client_for().get("/api/v1/people/search/?q=ana").status_code == 401
 
@@ -31,11 +31,9 @@ def test_request_accept_flow_and_notifications(tourist, ana):
     r = client_for(tourist).post("/api/v1/friends/requests/", {"username": "marija"}, format="json")
     assert r.status_code == 201 and r.json()["relation"] == "outgoing"
     assert Notification.objects.filter(user=ana, type="friend").exists()
-    # двојно барање е одбиено
     assert client_for(tourist).post("/api/v1/friends/requests/", {"username": "marija"}, format="json").status_code == 409
     lists = client_for(ana).get("/api/v1/friends/").json()
     req_id = lists["incoming"][0]["request_id"]
-    # испраќачот не може сам да прифати
     assert client_for(tourist).post(f"/api/v1/friends/requests/{req_id}/accept/").status_code == 404
     assert client_for(ana).post(f"/api/v1/friends/requests/{req_id}/accept/").json()["relation"] == "friends"
     assert client_for(tourist).get("/api/v1/friends/").json()["friends"][0]["username"] == "marija"
@@ -57,14 +55,13 @@ def test_decline_remove_and_self(tourist, ana):
     assert client_for(ana).post(f"/api/v1/friends/requests/{fid}/decline/").status_code == 200
     assert not Friendship.objects.exists()
     c.post("/api/v1/friends/requests/", {"username": "marija"}, format="json")
-    assert c.delete("/api/v1/friends/marija/").status_code == 204  # откажано барање
+    assert c.delete("/api/v1/friends/marija/").status_code == 204
     assert c.delete("/api/v1/friends/marija/").status_code == 404
 
 
 def test_private_profile_visible_to_friends_only(tourist, ana, hidden):
     assert client_for(tourist).post("/api/v1/friends/requests/", {"username": "skrien"}, format="json").status_code == 403
     assert client_for(tourist).get("/api/v1/users/skrien/").status_code == 403
-    # skrien сам испраќа барање → по прифаќање, туристот го гледа профилот
     client_for(hidden).post("/api/v1/friends/requests/", {"username": tourist.username}, format="json")
     fid = Friendship.objects.get(to_user=tourist).pk
     client_for(tourist).post(f"/api/v1/friends/requests/{fid}/accept/")
@@ -72,7 +69,7 @@ def test_private_profile_visible_to_friends_only(tourist, ana, hidden):
     assert prof.status_code == 200 and prof.json()["relation"] == "friends"
     assert client_for(ana).get("/api/v1/users/skrien/").status_code == 403
     found = client_for(tourist).get("/api/v1/people/search/?q=skrien").json()
-    assert found[0]["relation"] == "friends"  # пријателите се наоѓаат и со приватен профил
+    assert found[0]["relation"] == "friends"
 
 
 def test_friend_notification_in_english(tourist, ana):
@@ -101,7 +98,7 @@ def test_seed_community_realistic_and_idempotent(db, settings, tmp_path):
     turist = User.objects.get(username="turist")
     lists = client_for(turist).get("/api/v1/friends/").json()
     assert len(lists["friends"]) == 3 and len(lists["incoming"]) == 1 and len(lists["outgoing"]) == 1
-    call_command("seed_community")  # втор пат не дуплира
+    call_command("seed_community")
     assert User.objects.filter(email__endswith="@demo.example.com").count() == 8
     call_command("seed_community", "--reset")
     assert Review.objects.filter(user__email__endswith="@demo.example.com").count() == 9
@@ -120,7 +117,7 @@ def test_photo_likes(tourist, other_tourist, places, settings, tmp_path):
     c = client_for(tourist)
     r = c.post(f"/api/v1/photos/{photo.pk}/like/")
     assert r.json() == {"id": photo.pk, "like_count": 1, "liked_by_me": True}
-    c.post(f"/api/v1/photos/{photo.pk}/like/")  # двоен лајк не се брои
+    c.post(f"/api/v1/photos/{photo.pk}/like/")
     assert Notification.objects.filter(user=other_tourist, type="photo_like").count() == 1
     gallery = c.get(f"/api/v1/places/{p.pk}/gallery/").json()["photos"][0]
     assert gallery["like_count"] == 1 and gallery["liked_by_me"] is True
@@ -129,5 +126,5 @@ def test_photo_likes(tourist, other_tourist, places, settings, tmp_path):
     assert client_for().post(f"/api/v1/photos/{photo.pk}/like/").status_code == 401
     photo.is_public = False
     photo.save()
-    assert c.post(f"/api/v1/photos/{photo.pk}/like/").status_code == 404  # приватна фотографија
+    assert c.post(f"/api/v1/photos/{photo.pk}/like/").status_code == 404
 

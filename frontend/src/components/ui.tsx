@@ -28,7 +28,6 @@ export const Empty = ({ title, children }: { title: string; children?: ReactNode
   </div>
 );
 
-/** Мета-информации без интерпункциски сепаратори — само простор. */
 export const Meta = ({ items }: { items: (ReactNode | false | null | undefined)[] }) => (
   <div className="meta">
     {items.filter(Boolean).map((it, i) => (
@@ -77,7 +76,6 @@ export const Field = ({ label, children, hint }: { label: string; children: Reac
   </label>
 );
 
-/** Беџ во форма на печат од пасош. */
 const ACCESS_TEXT: Record<string, string> = {
   YES: t("Пристапно со количка"), LIMITED: t("Делумно пристапно"), NO: t("Непристапно"), UNKNOWN: t("Пристапност непроверена"),
 };

@@ -1,9 +1,3 @@
-"""JSON renderer што ги преведува имињата на градовите кога клиентот бара англиски.
-
-Имињата на градовите се појавуваат во многу одговори (city_name, city, name на City, location);
-наместо секој serializer посебно, преводот е на едно место. Останатите податоци од каталогот
-(имиња на места, описи) остануваат на изворниот јазик.
-"""
 from rest_framework.renderers import JSONRenderer
 
 from .i18n import CITY_EN, get_lang

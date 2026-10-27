@@ -1,8 +1,3 @@
-"""Ги синхронизира беџовите од каталогот и ги доделува на корисниците што веќе ги исполнуваат условите.
-
-Идемпотентно — безбедно е да се пушта при секој deploy:
-    python manage.py recompute_badges
-"""
 from django.core.management.base import BaseCommand
 
 from accounts.models import User

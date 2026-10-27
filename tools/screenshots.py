@@ -1,18 +1,3 @@
-"""UI/UX слики од сите екрани за лаптоп, таблет и телефон, плус мокапи со рамки на уреди.
-
-Потребно (еднаш):
-    pip install playwright pillow
-    python -m playwright install chromium
-
-Пуштање (backend на :8000 и frontend на :5173 треба да работат, со seed_demo податоци):
-    python tools/screenshots.py
-    python tools/screenshots.py --out ui-sliki --sample-weather
-
-Опции:
-    --sample-weather  прикажи пример-прогноза ако нема OPENWEATHER_API_KEY
-    --blank-tiles     празни плочки за карта (кога нема интернет)
-Резултат: <out>/laptop, <out>/tablet, <out>/phone, <out>/mockups, <out>/pregled-*.png
-"""
 import argparse
 import asyncio
 import datetime as dt
@@ -45,7 +30,6 @@ def sample_weather():
 
 
 def weather_icon_png(code):
-    """Едноставна икона (сонце/облак/дожд) кога OpenWeather иконите не се достапни."""
     im = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     if code.startswith(("01", "02")):
@@ -70,7 +54,6 @@ def blank_tile():
 
 
 async def discover(page, base):
-    """ID-а на огласи од API, за скриптата да не зависи од фиксни броеви."""
     async def get(path):
         r = await page.request.get(f"{base}/api/v1{path}")
         data = await r.json()
@@ -87,7 +70,6 @@ async def discover(page, base):
 
 
 def pages(ids):
-    """(датотека, наслов, патека, корисник, акција)"""
     return [
         ("01-pocetna", "Почетна", "/", None, None),
         ("02-mesta", "Места и карта", "/places?city=ohrid", None, None),
@@ -118,7 +100,6 @@ def pages(ids):
 
 
 async def settle(page, ms=900):
-    """Почекај мрежата да се смири (со горна граница — HMR/надворешни ресурси може да не завршат)."""
     try:
         await page.wait_for_load_state("networkidle", timeout=6000)
     except Exception:
@@ -191,8 +172,6 @@ async def capture(args):
     return [(n, t) for n, t, *_ in pages(ids)]
 
 
-# ------------------------- Мокапи со рамки -------------------------
-
 BG = (226, 240, 236)
 DARK = (22, 30, 34)
 INK = (13, 54, 64)
@@ -250,7 +229,6 @@ def tablet_frame(shot, width):
 
 
 def phone_frame(shot, width):
-    """Рамка на телефон со статусна лента над екранот, за „островот“ да не покрива содржина."""
     bez = max(8, width // 26)
     inner = width - bez * 2
     s = shot.convert("RGB").resize((inner, round(shot.height * inner / shot.width)), Image.LANCZOS)
@@ -286,7 +264,6 @@ def mockup(out, name, title):
     d.text((90, 70), title, font=font(54, True), fill=INK)
     d.text((92, 140), "Travel Planner МК: лаптоп, таблет и телефон", font=font(28), fill=(80, 100, 105))
     bottom = H - 80
-    # Лаптоп лево, таблет во средина, телефон десно, со мало преклопување.
     if "laptop" in have:
         fr = laptop_frame(have["laptop"], 1240)
         x, y = 60, bottom - fr.height
@@ -334,7 +311,7 @@ def contact_sheet(out, dev, items, cols):
         sheet.paste(rounded(im, 14), (x, y), rounded(im, 14))
         f20 = font(20)
         words, lines, cur = f"{i + 1}. {t}".split(), [], ""
-        for w in words:  # прелами го насловот во ширината на сликата
+        for w in words:
             test = f"{cur} {w}".strip()
             if d.textlength(test, font=f20) <= thumb_w:
                 cur = test

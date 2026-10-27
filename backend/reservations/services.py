@@ -1,9 +1,3 @@
-"""Резервациска логика. Секоја промена на капацитет е атомска.
-
-Капацитетот се зафаќа при креирање на барањето (PENDING) и се ослободува при
-REJECTED/CANCELLED. Финалната проверка е условен UPDATE (… WHERE available >= n),
-па две паралелни барања не можат да го надминат капацитетот.
-"""
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
@@ -58,7 +52,6 @@ def create_accommodation_booking(user, unit, check_in, check_out, guests, notes=
                         .filter(unit=unit, date__in=stay).order_by("date"))
             if len(rows) != len(stay):
                 raise ServiceError("Некои ноќи немаат дефинирана достапност.", code="not_available")
-            # Атомско намалување: успева само ако секоја ноќ има слободна единица.
             updated = (AccommodationAvailability.objects
                        .filter(unit=unit, date__in=stay, available_units__gte=1)
                        .update(available_units=F("available_units") - 1))
@@ -166,7 +159,6 @@ def _release_capacity(res):
         )
 
 
-# Дозволени транзиции: (од, во) -> кој смее ("business" / "tourist").
 TRANSITIONS = {
     (S.PENDING, S.CONFIRMED): "business",
     (S.PENDING, S.REJECTED): "business",

@@ -1,4 +1,3 @@
-"""Ги внесува беџовите од каталогот (40 градови/предели + достигнувања) и сликите за постоечките."""
 from django.db import migrations
 
 from gamification import catalog

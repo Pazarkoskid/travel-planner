@@ -1,4 +1,3 @@
-"""Почетни (проценети) податоци за пристапност на демо местата; менува само „непознато“."""
 from django.db import migrations
 
 from destinations import accessibility_data

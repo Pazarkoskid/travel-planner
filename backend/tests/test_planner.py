@@ -23,7 +23,7 @@ def test_plan_contains_only_catalog_ids(tourist, city, places):
     assert set(run.selected_place_ids) <= ids
     assert run.metrics["optimized_travel_min"] <= run.metrics["baseline_travel_min"] + 1e-6
     assert run.metrics["interest_coverage"] == 1.0
-    assert any("работното време" in w for w in trip.warnings)  # непознато → предупредување, не измислено
+    assert any("работното време" in w for w in trip.warnings)
 
 
 def test_llm_unknown_ids_are_rejected(tourist, city, places, settings):

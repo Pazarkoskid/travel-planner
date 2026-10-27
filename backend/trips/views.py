@@ -17,7 +17,6 @@ class TripViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Корисникот гледа само свои патувања.
         return (Trip.objects.filter(user=self.request.user).select_related("city")
                 .prefetch_related("itinerary_days__items__place", "itinerary_days__items__business", "plan_runs"))
 
@@ -79,7 +78,7 @@ class TripViewSet(viewsets.ModelViewSet):
             raise ValidationError({"format": "Поддржани формати: csv, pdf."})
         resp = HttpResponse(content_type="text/csv; charset=utf-8")
         resp["Content-Disposition"] = f'attachment; filename="trip-{trip.pk}.csv"'
-        resp.write("﻿")  # BOM за Excel и кирилица
+        resp.write("﻿")
         w = csv.writer(resp)
         w.writerow(["Ден", "Датум", "Од", "До", "Активност", "Патување (мин)", "Растојание (km)", "Трошок (EUR)",
                     "Причина", "Предупредување"])

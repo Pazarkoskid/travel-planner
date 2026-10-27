@@ -5,7 +5,6 @@ import { useAsync } from "../hooks";
 import { Empty, Loading } from "../components/ui";
 import type { City, Place } from "../types";
 
-/** Наведување автори и лиценци за сите фотографии (услов на CC BY / CC BY-SA). */
 export default function Credits() {
   const cities = useAsync(() => api<City[]>("/cities/"), []);
   const places = useAsync(async () => unwrap(await api<Place[] | { results: Place[] }>("/places/")), []);

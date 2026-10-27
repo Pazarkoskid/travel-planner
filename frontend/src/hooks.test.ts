@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-// Јазикот се одредува при вчитување на модулот → за секој јазик свежо вчитување.
 async function load(lang: "mk" | "en") {
   vi.resetModules();
   vi.stubGlobal("localStorage", { getItem: (k: string) => (k === "tpm_lang" ? lang : null), setItem: () => {}, removeItem: () => {} });

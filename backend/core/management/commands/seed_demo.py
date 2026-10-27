@@ -1,11 +1,3 @@
-"""Демо податоци: градови, места од data/seed_places.csv, демо бизниси, корисници и беџови.
-
-    python manage.py seed_demo            # идемпотентно
-    python manage.py seed_demo --reset    # брише демо бизниси/резервации пред повторно полнење
-    python manage.py seed_demo --if-empty # само ако базата е празна (се користи при deploy на Render)
-
-SEED_ADMIN_PASSWORD (env) ја заменува демо лозинката на admin при прво креирање — задолжително за јавен deploy.
-"""
 import csv
 import io
 import os
@@ -180,7 +172,6 @@ class Command(BaseCommand):
         Business.objects.filter(pk=boat.pk).update(phone="+389 00 000 001")
         Business.objects.filter(pk=rest.pk).update(phone="+389 00 000 002", address="Кеј, Охрид")
 
-        # Завршена резервација во минатото → демонстрира рецензија „Проверена резервација“.
         turist = users["turist"]
         if not Reservation.objects.filter(user=turist, status="COMPLETED").exists():
             ci, co = today - timedelta(days=10), today - timedelta(days=7)
@@ -192,12 +183,10 @@ class Command(BaseCommand):
                                            unit_price=Decimal("45"), total_price=Decimal("135"))
             for a, b in (("", "PENDING"), ("PENDING", "CONFIRMED"), ("CONFIRMED", "COMPLETED")):
                 ReservationStatusHistory.objects.create(reservation=res, from_status=a, to_status=b, actor=host)
-            # Демо рецензија (тест-податок) за да се види приказот на проверени рецензии.
             Review.objects.create(user=turist, business=vila, reservation=res, rating=5,
                                   dimension_scores={"cleanliness": 5, "location": 5, "comfort": 4, "value": 5},
                                   comment="Демо рецензија: тераса со поглед на езерото и мирна улица во стариот град.")
 
-        # Беџови + 3 фото-посети во Охрид → „3 од 10“ (30%) како во спецификацијата.
         gamification.ensure_global_badges()
         for city in cities.values():
             gamification.ensure_city_badges(city)

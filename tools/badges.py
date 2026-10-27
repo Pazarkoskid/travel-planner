@@ -1,13 +1,3 @@
-"""Генерира слики за беџовите (frontend/public/badges/*.webp).
-
-Локации: пејзажот се зема од оригиналните 256px PNG (кругот е поместен по редови од листот),
-а рамката, бројот и натписот се цртаат наново, униформно.
-Достигнувања: целосно векторски (SVG), во иста визуелна линија.
-
-    pip install playwright pillow
-    python -m playwright install chromium
-    python tools/badges.py --src <папка со locations/> [--png-out ui-badges]
-"""
 import argparse
 import base64
 import importlib.util
@@ -29,7 +19,6 @@ GOLD, GOLD_LIGHT, INK = "#d6a73a", "#f0cf73", "#17282e"
 
 
 def row_top(num):
-    """Горниот раб на кругот во оригиналната слика (поместување по редови од листот)."""
     return 2 if num <= 9 else 10 if num <= 16 else 23 if num <= 24 else 34 if num <= 32 else 41
 
 
@@ -38,7 +27,7 @@ def scene_data_uri(path, num):
     cy, r = row_top(num) + 112, 97
     box = (128 - r, cy - r, 128 + r, min(256, cy + r))
     crop = im.crop(box)
-    if crop.height < 2 * r:  # долу недостасува: дополни со последниот ред
+    if crop.height < 2 * r:
         full = Image.new("RGB", (2 * r, 2 * r))
         full.paste(crop, (0, 0))
         last = crop.crop((0, crop.height - 1, crop.width, crop.height)).resize((2 * r, 2 * r - crop.height))
@@ -55,7 +44,6 @@ def _font_uri(sub, w):
     return "data:font/woff2;base64," + base64.b64encode(data).decode()
 
 
-# Фонтовите се вградени (data URI) — set_content страницата не смее да чита file:// фонтови.
 FONT_CSS = "".join(
     f"@font-face{{font-family:Onest;font-weight:{w};src:url('{_font_uri(s, w)}') format('woff2')}}"
     for w in (700, 800) for s in ("latin", "cyrillic"))
@@ -134,7 +122,6 @@ ICONS = {
 
 
 def laurel(side):
-    """Ловорова гранка од дното нагоре, по лак со радиус 186."""
     out = []
     start, end, n = 100, 205, 8
     pts = [math.radians(start + (end - start) * i / (n - 1)) for i in range(n)]
@@ -155,7 +142,7 @@ def laurel(side):
 def achievement_svg(title, icon, color, big=None):
     ic = ICONS[icon].replace("{c}", color).replace("{gold}", GOLD)
     tall = False
-    if big:  # „Град 100%“: име на градот + 100% во лентата
+    if big:
         head = f'<text x="256" y="290" font-size="46" data-max="300" text-anchor="middle" fill="#fff">{title.upper()}</text>'
         ribbon_text = '<text x="256" y="375" font-size="38" text-anchor="middle" fill="#17282e">100%</text>'
         icon_g = f'<g transform="translate(196 118) scale(1.2)">{ic}</g>'
@@ -189,8 +176,6 @@ def achievement_svg(title, icon, color, big=None):
 </svg>"""
 
 
-# ---------------- Печати за знаменитости ----------------
-# Мотиви во поле 100×100, боја на мастило = {c}; кремаста позадина = {p}.
 STAMP_ICONS = {
     "church": '<path d="M22 92V52l28-16 28 16v40z"/><path d="M38 40V26h24v14z"/><path d="M36 27a14 12 0 0 1 28 0z"/><path d="M48.5 4h3v10h-3zM44 7h12v3H44z"/><path d="M44 92V72a6 6 0 0 1 12 0v20z" fill="{p}"/><path d="M30 64h6v10h-6zM64 64h6v10h-6z" fill="{p}"/>',
     "kaneo": '<path d="M2 94V78h22l6-6h40l10 8 16 14z"/><path d="M28 70V54l22-11 22 11v16z"/><path d="M42 44V30h16v14zM40 31l10-14 10 14z"/><path d="M47 58h6v10h-6z" fill="{p}"/>',
@@ -218,7 +203,7 @@ STAMP_ICONS = {
 
 
 def stamp_svg(title, city, icon, ink, seed):
-    rot = (seed * 37 % 15) - 7  # секој печат малку различно свртен
+    rot = (seed * 37 % 15) - 7
     ic = STAMP_ICONS[icon].replace("{c}", ink).replace("{p}", "#fbf5e6")
     top = title.upper()
     fs = 34 if len(top) <= 14 else 30 if len(top) <= 18 else 26 if len(top) <= 22 else 22

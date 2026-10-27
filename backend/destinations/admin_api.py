@@ -1,8 +1,3 @@
-"""Администраторско уредување на каталогот: цени, работно време, опис, статус, знаменитости.
-
-Кога админот внесува цена или работно време без датум на проверка, датумот се
-поставува на денес — апликацијата прикажува цена/работно време само со извор и датум.
-"""
 from django.utils import timezone
 from rest_framework import serializers, viewsets
 
@@ -25,7 +20,7 @@ class PlaceAdminSerializer(serializers.ModelSerializer):
                   "wheelchair", "accessibility_notes")
 
     def validate(self, attrs):
-        get = lambda k: attrs.get(k, getattr(self.instance, k, None))  # noqa: E731
+        get = lambda k: attrs.get(k, getattr(self.instance, k, None))
         opening, closing = get("opening_time"), get("closing_time")
         if (opening is None) != (closing is None):
             raise serializers.ValidationError("Внесете и почеток и крај на работното време (или ниедно).")
@@ -45,7 +40,6 @@ class PlaceAdminSerializer(serializers.ModelSerializer):
 
 
 class PlaceAdminViewSet(viewsets.ModelViewSet):
-    """/admin/places/ — сите места (и непроверени), филтри ?city=&status=&q="""
 
     serializer_class = PlaceAdminSerializer
     permission_classes = [IsAdminRole]

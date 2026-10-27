@@ -14,15 +14,12 @@
     </linearGradient>
     <clipPath id="tpm-window"><circle cx="32" cy="26" r="16.5"/></clipPath>
   </defs>
-  <!-- игла на мапа -->
   <path d="M32 61.5C29.4 57.6 8.5 41.8 8.5 26a23.5 23.5 0 0 1 47 0c0 15.8-20.9 31.6-23.5 35.5z"
         fill="url(#tpm-pin)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
-  <!-- прозорец: изгрејсонце, Галичица, Канео над Охридското Езеро -->
   <g clip-path="url(#tpm-window)">
     <rect x="14" y="8" width="36" height="36" fill="url(#tpm-sky)"/>
     <circle cx="39.5" cy="19.5" r="5.4" fill="#c99a2e"/>
     <path d="M12 31.5c5-3.2 9-5.6 13.5-5.6 4 0 6.5 2.4 10.5 2.4 4.5 0 7.5-3.8 12-3.8 2 0 3.5.5 4 .8V33H12z" fill="#9fd6c0"/>
-    <!-- карпа и црква Св. Јован Канео -->
     <path d="M12 33.5V29.6h4.6l1.4-1.3h10.6l1.6 1.5 2 3.7z" fill="#0d3640"/>
     <path d="M18.4 28.6v-3l4.6-2.3 4.6 2.3v3z" fill="#0d3640"/>
     <path d="M21.5 23.9v-2.9h3v2.9z M21.1 21.1l1.9-2.4 1.9 2.4z" fill="#0d3640"/>

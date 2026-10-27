@@ -5,7 +5,6 @@ export function useAsync<T>(fn: () => Promise<T>, deps: DependencyList) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const run = useCallback(fn, deps);
 
   const reload = useCallback(async () => {
@@ -34,7 +33,6 @@ const WEEKDAYS = lang === "en"
   ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
   : [t("недела"), t("понеделник"), t("вторник"), t("среда"), t("четврток"), t("петок"), t("сабота")];
 
-/** Датуми на избраниот јазик, без зависност од локалните поставки на прелистувачот. */
 export const fmtDate = (d: string | null | undefined) => {
   if (!d) return t("нема");
   const x = new Date(d.length === 10 ? `${d}T12:00:00` : d);

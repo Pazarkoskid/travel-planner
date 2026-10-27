@@ -35,7 +35,6 @@ def nights(ci, co):
 
 
 def unit_quote(unit, ci, co):
-    """Цена и достапност за секоја ноќ. None ако некоја ноќ е недостапна."""
     stay = nights(ci, co)
     rows = list(AccommodationAvailability.objects.filter(unit=unit, date__in=stay, available_units__gte=1))
     if len(rows) != len(stay):
@@ -95,6 +94,5 @@ def search_accommodations(*, city=None, check_in=None, check_out=None, guests=1,
             "score": score,
             "reason": ", ".join(reasons) or "достапно за избраните датуми",
         })
-    # Спонзорираните не добиваат предност во рангирањето — само ознака.
     results.sort(key=lambda r: r["score"], reverse=True)
     return results

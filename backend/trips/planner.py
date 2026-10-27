@@ -1,9 +1,3 @@
-"""AI pipeline за план (спецификација 6.2).
-
-1. Валидација (serializers) → 2. Кандидати од проверен каталог → 3. Цени/достапност
-(само познати) → 4. Избор: LLM (JSON со IDs) или детерминистички → 5. Валидација на IDs
-→ 6. OR-Tools редослед + временски блокови → 7. Приказ со причини и предупредувања.
-"""
 import time
 from datetime import datetime, timedelta
 from datetime import time as dtime
@@ -35,7 +29,6 @@ INTEREST_LABELS = {
     "history": "историја", "religion": "цркви и манастири", "nature": "природа", "beach": "плажи",
     "culture": "култура", "local_food": "локална храна", "activities": "активности", "museums": "музеи",
 }
-# Темпо → (максимум места дневно, минути активности без ручек).
 PACE_PER_DAY = {"relaxed": 4, "balanced": 6, "intense": 8}
 PACE_MINUTES = {"relaxed": 330, "balanced": 450, "intense": 540}
 DAY_START = dtime(9, 0)
@@ -54,7 +47,6 @@ REVISION_KEYWORDS = {
 
 
 W = Place.Wheelchair
-# Подвижност → (исклучени нивоа, множител за времетраење на посета, намалување на места дневно)
 MOBILITY = {
     "standard": (set(), 1.0, 0),
     "reduced": ({W.NO}, 1.25, 1),
@@ -107,7 +99,6 @@ def day_minutes(trip):
 
 
 def retrieve_candidates(trip):
-    """Само VERIFIED места од каталогот. Цени/работно време — само ако се зачувани."""
     s_lat, s_lng, _ = start_point(trip)
     mods = set(trip.modifiers.get("active", []))
     must = set(trip.must_visit.values_list("id", flat=True))
@@ -116,7 +107,7 @@ def retrieve_candidates(trip):
         wanted |= INTEREST_CATEGORIES.get(i, set())
     budget_cap = None
     if trip.budget:
-        budget_cap = Decimal(trip.budget) * Decimal("0.4")  # еден влез не смее да „изеде“ >40% од буџетот
+        budget_cap = Decimal(trip.budget) * Decimal("0.4")
     out, excluded = [], []
     blocked, duration_factor, _ = MOBILITY.get(trip.mobility, MOBILITY["standard"])
     access_score = ACCESS_SCORE.get(trip.mobility, {})
@@ -156,7 +147,7 @@ def retrieve_candidates(trip):
             continue
         walk_limit = 3 if trip.mobility != "standard" else 6
         if trip.transport == "walking" and dist > walk_limit and p.id not in must:
-            continue  # недостижно пешки во разумно време
+            continue
         out.append({
             "id": p.id, "name": p.name, "category": p.category,
             "duration": round(p.visit_duration_min * duration_factor),
@@ -167,7 +158,7 @@ def retrieve_candidates(trip):
             "opening": p.opening_time, "closing": p.closing_time, "must": p.id in must,
         })
     out.sort(key=lambda c: c["score"], reverse=True)
-    trip._inaccessible = inaccessible  # за предупредувањето во generate_plan
+    trip._inaccessible = inaccessible
     return out, excluded
 
 
@@ -178,7 +169,6 @@ def _minutes_between(a, b, transport):
 
 
 def rule_based_selection(candidates, days, per_day, start, transport, budget_min=450):
-    """Детерминистички избор: семе = најдобро место, па се додаваат блиски места со висок резултат."""
     unused = list(candidates)
     plan = []
     origin = {"lat": start[0], "lng": start[1]}
@@ -201,7 +191,6 @@ def rule_based_selection(candidates, days, per_day, start, transport, budget_min
 
 
 def schedule_day(ids, by_id, km, minutes, index_of, day_date):
-    """Временски блокови. Враќа (items, violations, travel_total)."""
     t = datetime.combine(day_date, DAY_START)
     items, violations, travel_total, prev, lunch_done = [], 0, 0.0, 0, False
     for pid in ids:
@@ -283,7 +272,6 @@ def generate_plan(trip, instructions=""):
     if selection is None:
         selection = rule_based_selection(candidates, trip.days, per_day, (s_lat, s_lng), trip.transport,
                                          day_minutes(trip))
-    # Задолжителните места мора да се во планот.
     chosen = {pid for day in selection for pid in day}
     for c in candidates:
         if c["must"] and c["id"] not in chosen:
@@ -306,7 +294,6 @@ def generate_plan(trip, instructions=""):
         optimized = [ids[k - 1] for k in order_local]
         b_items, b_viol, b_travel = schedule_day(ids, by_id, km, minutes, index_of, day_date)
         o_items, o_viol, o_travel = schedule_day(optimized, by_id, km, minutes, index_of, day_date)
-        # Оптимизацијата се прифаќа само ако не е полоша по прекршувања и време.
         if (o_viol, o_travel) > (b_viol, b_travel):
             o_items, o_viol, o_travel = b_items, b_viol, b_travel
         metrics["baseline_travel_min"] += b_travel

@@ -1,4 +1,3 @@
-// Резерва: ако backend-от не добие податоци од Overpass, прелистувачот ги бара директно (Overpass дозволува CORS).
 const MIRRORS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.private.coffee/api/interpreter",
@@ -52,7 +51,7 @@ export async function fetchAmenitiesDirect(lat: number, lng: number, radius = 30
   try {
     const hit = JSON.parse(localStorage.getItem(KEY(lat, lng)) || "null");
     if (hit && Date.now() - hit.at < 12 * 3600 * 1000) return { items: hit.items, stale: false };
-  } catch { /* нема кеш */ }
+  } catch {  }
   for (const url of MIRRORS) {
     try {
       const ctrl = new AbortController();
@@ -61,9 +60,9 @@ export async function fetchAmenitiesDirect(lat: number, lng: number, radius = 30
       window.clearTimeout(timer);
       if (!res.ok) continue;
       const items = parseOverpass(await res.json());
-      try { localStorage.setItem(KEY(lat, lng), JSON.stringify({ at: Date.now(), items })); } catch { /* полн storage */ }
+      try { localStorage.setItem(KEY(lat, lng), JSON.stringify({ at: Date.now(), items })); } catch {  }
       return { items, stale: false };
-    } catch { /* следен сервер */ }
+    } catch {  }
   }
   throw new Error("osm_unavailable");
 }

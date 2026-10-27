@@ -11,7 +11,6 @@ from .planner import INTEREST_CATEGORIES
 
 
 class LangMixin:
-    """Ги преведува генерираните текстови според Accept-Language (en/mk)."""
 
     translated_fields = ()
 

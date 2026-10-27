@@ -13,7 +13,6 @@ DIMENSIONS = {
 class Review(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
     business = models.ForeignKey("businesses.Business", on_delete=models.CASCADE, related_name="reviews")
-    # OneToOne = уникатно ограничување во базата: една рецензија по резервација.
     reservation = models.OneToOneField("reservations.Reservation", on_delete=models.PROTECT, related_name="review")
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     dimension_scores = models.JSONField(default=dict, blank=True)

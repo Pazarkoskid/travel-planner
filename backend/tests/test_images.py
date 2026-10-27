@@ -25,9 +25,8 @@ def jpeg_bytes(w=2400, h=1600):
 
 @pytest.fixture(autouse=True)
 def local_media(settings, tmp_path, monkeypatch):
-    """Сликите се зачувуваат во привремена папка; преземањето е симулирано."""
     settings.MEDIA_ROOT = tmp_path
-    settings.DEBUG = True  # локален развој → зачувување во media/
+    settings.DEBUG = True
     monkeypatch.setattr(fetch_images, "PAUSE", 0)
     downloaded = []
 
@@ -41,9 +40,9 @@ def local_media(settings, tmp_path, monkeypatch):
 
 def fake_get_json(url, params, timeout=15):
     q = params.get("gsrsearch") or params.get("srsearch") or ""
-    if "Nowhere" in q or "Св. Наум" in q:  # нема слика никаде
+    if "Nowhere" in q or "Св. Наум" in q:
         return EMPTY
-    if "generator" in params:  # пребарување на Wikipedia
+    if "generator" in params:
         return {"query": {"pages": [
             {"index": 1, "pageimage": "North_Macedonia_location_map.svg"},
             {"index": 2, "pageimage": "Kaneo_view.jpg"},
@@ -57,7 +56,7 @@ def test_fetch_images_sets_url_and_credit_and_skips_maps(places):
     with mock.patch.object(fetch_images, "get_json", side_effect=fake_get_json):
         call_command("fetch_images")
     kaneo = Place.objects.get(slug="kaneo")
-    assert kaneo.image_url.startswith("/media/photos/places/ohrid/kaneo")  # зачувана кај нас, не линк
+    assert kaneo.image_url.startswith("/media/photos/places/ohrid/kaneo")
     assert kaneo.image_credit == "Фото: Jane Doe, CC BY-SA 4.0, Wikimedia Commons"
     assert Place.objects.get(slug="sv-naum").image_url == ""
 
@@ -71,7 +70,7 @@ def test_falls_back_to_mk_wikipedia_then_commons(places):
             return EMPTY
         if "mk.wikipedia" in url:
             return EMPTY
-        if "list" in params:  # Commons пребарување
+        if "list" in params:
             return {"query": {"search": [{"title": "File:Kaneo_view.jpg"}]}}
         return INFO
 
@@ -90,14 +89,14 @@ def test_existing_wikimedia_links_are_moved_to_our_storage(places, local_media, 
         call_command("fetch_images")
     p.refresh_from_db()
     assert p.image_url.startswith("/media/photos/places/ohrid/kaneo")
-    assert p.image_credit.startswith("Фото: Jane Doe")  # авторот и лиценцата остануваат
-    assert local_media == ["https://upload.wikimedia.org/thumb/x.jpg/1280px-x.jpg"]  # стандардна ширина
+    assert p.image_credit.startswith("Фото: Jane Doe")
+    assert local_media == ["https://upload.wikimedia.org/thumb/x.jpg/1280px-x.jpg"]
     with Image.open(settings.MEDIA_ROOT / p.image_url.removeprefix("/media/")) as im:
-        assert max(im.size) <= 1600  # намалена
+        assert max(im.size) <= 1600
 
 
 def test_download_falls_back_to_960(monkeypatch):
-    monkeypatch.undo()  # вистинска download функција
+    monkeypatch.undo()
     monkeypatch.setattr(fetch_images, "PAUSE", 0)
     monkeypatch.setattr(fetch_images.time, "sleep", lambda s: None)
     calls = []
@@ -135,4 +134,4 @@ def test_without_supabase_in_production_keeps_links(places, settings):
     settings.DEBUG, settings.SUPABASE_S3_ENDPOINT = False, ""
     with mock.patch.object(fetch_images, "get_json", side_effect=fake_get_json):
         call_command("fetch_images")
-    assert Place.objects.get(slug="kaneo").image_url == THUMB  # линк, не локален фајл
+    assert Place.objects.get(slug="kaneo").image_url == THUMB

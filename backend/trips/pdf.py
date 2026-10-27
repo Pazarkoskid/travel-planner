@@ -1,9 +1,3 @@
-"""PDF извоз на план за патување (reportlab, фонт Onest со кирилица).
-
-Содржи: заглавие со лого, основни податоци, предупредувања, распоред по денови
-(време, место, причина, движење, трошок, пристапност) и QR-код до планот во апликацијата
-(ако е поставен FRONTEND_URL).
-"""
 import io
 import os
 from datetime import date
@@ -202,7 +196,6 @@ def render_trip_pdf(trip, lang="mk"):
         tbl.setStyle(TableStyle(style))
         heading = Paragraph(f"{t['day']} {day.day_number} · {_date(day.date, t, weekday=True)}", S["h2"])
         notes = Paragraph(escape(tr(day.notes, lang)), S["small"]) if day.notes else Spacer(1, 1)
-        # Насловот и белешката остануваат со првите редови од табелата; табелата се дели меѓу страни.
         story += [Spacer(1, 4 * mm), KeepTogether([heading, notes, Spacer(1, 2 * mm)]), tbl]
 
     story += [Spacer(1, 6 * mm), Paragraph(t["note"], S["small"])]

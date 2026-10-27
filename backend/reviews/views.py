@@ -40,7 +40,6 @@ class ReviewIn(serializers.Serializer):
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def create_review(request, pk):
-    """Серверски проверки: сопственик на резервацијата, статус COMPLETED, една рецензија."""
     res = get_object_or_404(Reservation, pk=pk)
     if res.user_id != request.user.id:
         raise ServiceError("Може да оцените само сопствена резервација.", code="forbidden", status_code=403)
@@ -79,7 +78,6 @@ def reply(request, pk):
     text = str(request.data.get("reply_text", "")).strip()
     if not text:
         raise ServiceError("Одговорот е празен.", code="empty_reply")
-    # Бизнисот може да го уреди својот одговор, но никогаш самата рецензија.
     obj, _ = BusinessReply.objects.update_or_create(review=review, defaults={"reply_text": text[:2000],
                                                                              "business_user": request.user})
     notify(review.user, "review_reply", "Бизнисот одговори на вашата рецензија", "", review)

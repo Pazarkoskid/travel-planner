@@ -47,7 +47,6 @@ def test_owner_replies_but_cannot_edit_and_admin_moderates(tourist, owner, other
                                    format="json").json()["id"]
     r = client_for(owner).post(f"/api/v1/reviews/{rid}/reply/", {"reply_text": "Извинете"}, format="json")
     assert r.status_code == 200
-    # Нема endpoint за менување туѓа рецензија; бизнисот не може ни да ја пријави за бришење директно.
     assert client_for(owner).patch(f"/api/v1/reviews/{rid}/", {"rating": 5}, format="json").status_code in (404, 405)
     client_for(other_tourist).post(f"/api/v1/reviews/{rid}/report/", {"reason": "спам"}, format="json")
     rep = client_for(admin_user).get("/api/v1/admin/review-reports/").json()[0]

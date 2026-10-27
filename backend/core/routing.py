@@ -1,9 +1,3 @@
-"""Сервис за матрица на растојанија/времиња.
-
-ROUTING_PROVIDER=haversine — проценка без надворешен повик (стандардно).
-ROUTING_PROVIDER=osrm — OSRM table API со timeout; при грешка се враќа на
-проценка и се додава предупредување.
-"""
 import json
 import logging
 import urllib.request
@@ -42,13 +36,12 @@ def _osrm_matrix(points, transport):
 
 
 def travel_matrix(points, transport="car"):
-    """points: листа од (lat, lng). Враќа (km_matrix, minutes_matrix, provider, warnings)."""
     warnings = []
     if settings.ROUTING_PROVIDER == "osrm" and len(points) > 1:
         try:
             km, minutes = _osrm_matrix(points, transport)
             return km, minutes, "osrm", warnings
-        except Exception as exc:  # мрежа, timeout, лош одговор
+        except Exception as exc:
             logger.warning("OSRM unavailable, falling back: %s", exc)
             warnings.append("Сервисот за рутирање е недостапен; времињата се проценети од воздушно растојание.")
     km, minutes = _haversine_matrix(points, transport)

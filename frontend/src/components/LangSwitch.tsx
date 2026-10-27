@@ -1,6 +1,5 @@
 import { lang, setLang, t } from "../i18n";
 
-/** Избор на јазик (MK/EN). Изборот се памти во прелистувачот. */
 export default function LangSwitch({ className = "" }: { className?: string }) {
   return (
     <div className={`lang-switch ${className}`} role="group" aria-label={t("Јазик")}>

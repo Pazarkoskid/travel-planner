@@ -7,7 +7,6 @@ from .models import BusinessReply, Review, ReviewReport
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ("id", "business", "user", "rating", "status", "created_at")
     list_filter = ("status", "rating")
-    # Администраторот модерира (видливост), но не ја менува содржината.
     readonly_fields = ("user", "business", "reservation", "rating", "dimension_scores", "comment")
 
 

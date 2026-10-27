@@ -44,7 +44,7 @@ function PlaceEditor({ p, onSaved, onClose }: { p: AdminPlace; onSaved: (x: Admi
       is_required_landmark: f.is_required_landmark, source: f.source, image_url: f.image_url, image_credit: f.image_credit,
       checkin_radius_m: Number(f.checkin_radius_m), wheelchair: f.wheelchair, accessibility_notes: f.accessibility_notes,
     };
-    // Ако админот сам не го сменил датумот, серверот става денешен при промена на цена/време.
+
     if (f.verified_at !== (p.verified_at ?? "") || !touchedChecked) payload.verified_at = f.verified_at || null;
     try {
       onSaved(await api<AdminPlace>(`/admin/places/${p.id}/`, { method: "PATCH", json: payload }));

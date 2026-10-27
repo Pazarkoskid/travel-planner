@@ -1,22 +1,3 @@
-"""Презема слободни (CC/PD) фотографии за градовите и местата од Wikipedia/Wikimedia Commons.
-
-    python manage.py fetch_images            # само каде што нема слика
-    python manage.py fetch_images --force    # ги заменува постоечките
-
-За секое место се пребарува англиската Wikipedia (поле wiki_query), потоа македонската
-(име на местото), па Commons директно. Се зема слободна слика (pilicense=free), а од Commons
-URL со стандардна ширина 1280px (Wikimedia ограничува нестандардни ширини), авторот и лиценцата.
-Меѓу барањата има пауза, а при HTTP 429 се чека и се пробува повторно.
-
-Сликите НЕ се линкуваат директно (Wikimedia го ограничува вградувањето на сликички на други сајтови):
-се преземаат, се намалуваат на најмногу 1600px (JPEG) и се зачувуваат во нашиот storage —
-Supabase Storage на Render, локално media/. Авторот и лиценцата остануваат во image_credit.
-
-    python manage.py fetch_images              # пребарај што нема слика + префрли ги постоечките Wikimedia линкови
-    python manage.py fetch_images --force      # пребарај и замени ги сите
-    python manage.py fetch_images --no-store   # само линкови (стар начин) Авторот и лиценцата се зачувуваат во image_credit и се
-прикажуваат под фотографијата во апликацијата.
-"""
 import html
 import io
 import json
@@ -39,11 +20,11 @@ WIKI_API = "https://en.wikipedia.org/w/api.php"
 MK_WIKI_API = "https://mk.wikipedia.org/w/api.php"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 SKIP = re.compile(r"(\.svg$|map|locator|flag|coat_of_arms|logo|location)", re.I)
-WIDTH = 1280  # стандардна ширина; нестандардните (пр. 1600) Wikimedia ги ограничува
+WIDTH = 1280
 FALLBACK_WIDTH = 960
 WIKIMEDIA = re.compile(r"^https?://upload\.wikimedia\.org/")
 MAX_SIDE = 1600
-OLD_WIDTHS = re.compile(r"/(1600)px-")  # линкови од постарата верзија → се преземаат наново
+OLD_WIDTHS = re.compile(r"/(1600)px-")
 PAUSE = 0.4
 
 
@@ -93,14 +74,12 @@ def _search_commons(query):
 
 
 def find_file(query, mk_query=None):
-    """Име на датотека (без 'File:'): en.wikipedia → mk.wikipedia → Commons."""
     return (_search_pageimage(WIKI_API, query)
             or (mk_query and _search_pageimage(MK_WIKI_API, mk_query))
             or _search_commons(query))
 
 
 def file_info(filename):
-    """Враќа (url, credit) за датотеката од Commons (или en.wikipedia ако не е на Commons)."""
     for api in (COMMONS_API, WIKI_API):
         data = get_json(api, {
             "action": "query", "format": "json", "formatversion": 2, "titles": f"File:{filename}",
@@ -119,7 +98,6 @@ def file_info(filename):
 
 
 def download(url, timeout=30):
-    """Ја презема сликата (со User-Agent и повторен обид при 429). При грешка за сликичка пробува 960px."""
     candidates = [url]
     m = re.search(r"/(\d+)px-", url)
     if m and int(m[1]) != FALLBACK_WIDTH:
@@ -142,7 +120,6 @@ def download(url, timeout=30):
 
 
 def store_image(obj, data):
-    """Намалува и зачувува како JPEG во storage; враќа јавен URL."""
     im = Image.open(io.BytesIO(data))
     im = im.convert("RGB")
     im.thumbnail((MAX_SIDE, MAX_SIDE))
@@ -162,8 +139,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **opts):
         objects = list(City.objects.all()) + list(Place.objects.select_related("city"))
-        # Зачувување само кога има траен storage (Supabase) или локален развој; на Render без
-        # Supabase дискот е привремен и /media не се сервира → тогаш остануваат линкови.
         store = not opts["no_store"] and (bool(settings.SUPABASE_S3_ENDPOINT) or settings.DEBUG)
         if not opts["no_store"] and not store:
             self.stdout.write(self.style.WARNING(
@@ -176,7 +151,6 @@ class Command(BaseCommand):
                 continue
             try:
                 if obj.image_url and linked and not opts["force"]:
-                    # Веќе има слободна слика (автор и лиценца се зачувани) — само ја префрламе кај нас.
                     url, credit, label = OLD_WIDTHS.sub(f"/{WIDTH}px-", obj.image_url), obj.image_credit, "префрлена"
                 else:
                     query = obj.wiki_query or (f"{obj.name} {obj.city.name}" if isinstance(obj, Place) else obj.name)
@@ -190,7 +164,7 @@ class Command(BaseCommand):
                         continue
                 if store:
                     url = store_image(obj, download(url))
-            except Exception as exc:  # мрежа, timeout, променет API, неважечка слика
+            except Exception as exc:
                 self.stderr.write(f"  {obj}: грешка ({exc})")
                 failed += 1
                 continue

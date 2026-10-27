@@ -1,13 +1,3 @@
-"""Демо-заедница: туристи, фото-посети со фотографии, лајкови, пријателства и проверени рецензии.
-
-    python manage.py seed_community            # само ако демо-туристите уште не постојат
-    python manage.py seed_community --reset    # ги брише и ги прави одново
-
-Се пушта ПОСЛЕ fetch_images: фотографиите на посетите се изведени од фотографијата на местото
-(друг исечок, светлина, огледално), а во описот е наведен изворот и лиценцата — јасно означени
-како демо. Ако местото нема фотографија, се црта едноставен пејзаж.
-Рецензиите се врзани за завршени резервации (истото правило како во апликацијата).
-"""
 import io
 import zlib
 import random
@@ -45,7 +35,6 @@ PEOPLE = [
     ("ivana.d", "Ивана", "Димовска", "Мама на две деца — барам места погодни за семејства."),
 ]
 
-# корисник → места (град/место) што ги посетил
 VISITS = {
     "marija.p": ["ohrid/kaneo", "ohrid/sv-naum", "ohrid/samoilova-tvrdina", "ohrid/kej", "ohrid/plaoshnik", "ohrid/lagadin"],
     "stefan.n": ["bitola/pelister", "ohrid/galicica-vidikovec", "skopje/matka", "skopje/milenium-krst"],
@@ -76,7 +65,6 @@ CAPTIONS_EN = {
     "BEACH": ["Quiet beach, warm water in late August.", "Umbrella, a book and the lake."],
 }
 
-# (корисник, бизнис по тип, оценка, критериуми, коментар, одговор од бизнисот или None)
 REVIEWS = [
     ("marija.p", "ACCOMMODATION", 5, {"cleanliness": 5, "location": 5, "comfort": 5, "value": 5, "communication": 5},
      "Терасата гледа директно на езерото, а домаќинката не дочека со домашно слатко. Одиме пак!",
@@ -105,7 +93,6 @@ REVIEWS = [
 
 
 def painted(seed, size=(1280, 960)):
-    """Едноставен пејзаж кога местото нема фотографија."""
     rnd = random.Random(seed)
     w, h = size
     im = Image.new("RGB", size)
@@ -132,13 +119,12 @@ def place_photo(place):
             req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
             with urllib.request.urlopen(req, timeout=20) as resp:
                 return Image.open(io.BytesIO(resp.read())).convert("RGB")
-    except Exception:  # noqa: BLE001 — демо: без мрежа се црта пејзаж
+    except Exception:
         return None
     return None
 
 
 def variant(base, seed):
-    """Различна „фотографија“ од истото место: исечок, светлина, контраст, огледално."""
     rnd = random.Random(seed)
     w, h = base.size
     scale = rnd.uniform(0.62, 0.86)
@@ -178,7 +164,6 @@ class Command(BaseCommand):
                                          first_name=first, last_name=last, bio=bio)
             users[username] = u
 
-        # --- фото-посети ---
         places = {f"{p.city.slug}/{p.slug}": p for p in Place.objects.select_related("city")}
         bases = {}
         photos = 0
@@ -201,7 +186,7 @@ class Command(BaseCommand):
                         u, p, SimpleUploadedFile(f"{u.username}-{p.slug}.jpg", data, content_type="image/jpeg"),
                         client_lat=p.lat + rnd.uniform(-0.0004, 0.0004), client_lng=p.lng + rnd.uniform(-0.0004, 0.0004),
                         caption=(text + source)[:300])
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     self.stderr.write(f"  {username} @ {key}: {exc}")
                     continue
                 when = now - timedelta(days=rnd.randint(3, 120), hours=rnd.randint(0, 10))
@@ -209,7 +194,6 @@ class Command(BaseCommand):
                 PlacePhoto.objects.filter(checkin=checkin).update(created_at=when)
                 photos += 1
 
-        # --- лајкови ---
         likers = list(users.values()) + list(User.objects.filter(username__in=["turist", "host"]))
         likes = 0
         for photo in PlacePhoto.objects.filter(user__in=users.values()):
@@ -218,7 +202,6 @@ class Command(BaseCommand):
                     PhotoLike.objects.get_or_create(photo=photo, user=liker)
                     likes += 1
 
-        # --- пријателства ---
         def befriend(a, b, accepted=True):
             f, _ = Friendship.objects.get_or_create(from_user=a, to_user=b)
             if accepted:
@@ -233,10 +216,9 @@ class Command(BaseCommand):
         if turist:
             for name in ("marija.p", "anna.mueller", "stefan.n"):
                 befriend(users[name], turist)
-            befriend(users["tom.harris"], turist, accepted=False)   # барање што чека кај туристот
-            befriend(turist, users["lucia.rossi"], accepted=False)  # испратено од туристот
+            befriend(users["tom.harris"], turist, accepted=False)
+            befriend(turist, users["lucia.rossi"], accepted=False)
 
-        # --- проверени рецензии (врзани за завршени резервации) ---
         reviews = self.seed_reviews(users, rnd, now)
         self.stdout.write(self.style.SUCCESS(
             f"Демо-заедница: {len(users)} туристи, {photos} фото-посети, {likes} лајкови, "
@@ -278,7 +260,7 @@ class Command(BaseCommand):
             elif kind == "RESTAURANT":
                 res.reserved_for, res.guests = done, rnd.randint(2, 5)
                 items = []
-            else:  # TAXI
+            else:
                 res.reserved_for, res.guests = done, rnd.randint(1, 3)
                 res.pickup, res.destination = "Аеродром Охрид", "Охрид, стар град"
                 res.quoted_price = price = Decimal("15")

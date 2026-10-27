@@ -15,7 +15,7 @@ def test_catalog_loaded_by_migration(db):
     assert Badge.objects.filter(kind="CATEGORY").count() == len(catalog.ACHIEVEMENTS)
     ohrid = Badge.objects.get(code="region-ohrid")
     assert ohrid.art == "/badges/loc-02-ohrid.webp" and ohrid.available
-    assert Badge.objects.get(code="region-struga").available is False  # нема места во каталогот → „наскоро“
+    assert Badge.objects.get(code="region-struga").available is False
     assert Badge.objects.get(code="wine-traveler").available is False
 
 
@@ -23,7 +23,7 @@ def test_city_and_lake_badges_from_rules(tourist, places):
     _, unlocked = visit(tourist, places["kaneo"], (10, 120, 200))
     codes = {b.code for b in unlocked}
     assert {"region-ohrid", "region-ohrid-lake"} <= codes
-    assert "lake-explorer" not in codes  # треба 3 места покрај езерото
+    assert "lake-explorer" not in codes
 
 
 def test_category_badge_needs_distinct_places(tourist, places):
@@ -32,12 +32,11 @@ def test_category_badge_needs_distinct_places(tourist, places):
     assert not UserBadge.objects.filter(user=tourist, badge__code="history-buff").exists()
     for p, c in (("sv-naum", (30, 30, 220)), ("lagadin", (220, 220, 30)), ("galicica", (30, 220, 220))):
         visit(tourist, places[p], c)
-    # 2 историски места не се доволно; природа: лагадин (BEACH) + галичица (VIEWPOINT) = 2 → уште не
     assert not UserBadge.objects.filter(user=tourist, badge__code__in=["history-buff", "nature-explorer"]).exists()
 
 
 def test_unavailable_badge_never_awarded(tourist, places):
-    Badge.objects.filter(code="region-struga").update(rule={"city": "ohrid"})  # available=False останува
+    Badge.objects.filter(code="region-struga").update(rule={"city": "ohrid"})
     visit(tourist, places["kaneo"], (90, 90, 160))
     assert not UserBadge.objects.filter(user=tourist, badge__code="region-struga").exists()
 

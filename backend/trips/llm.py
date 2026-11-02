@@ -47,9 +47,9 @@ def call_llm(prompt):
 def parse_and_validate(raw, valid_ids, days):
     errors, rejected = [], []
     text = raw.strip()
-    if "{" in text:
-        text = text[text.index("{"): text.rindex("}") + 1]
     try:
+        if "{" in text:
+            text = text[text.index("{"): text.rindex("}") + 1]
         data = json.loads(text)
         day_list = data["days"]
         assert isinstance(day_list, list)

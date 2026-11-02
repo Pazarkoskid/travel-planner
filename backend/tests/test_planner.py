@@ -71,3 +71,10 @@ def test_trip_validation(tourist, city):
                                                      "interests": ["xyz"]}, format="json")
     assert r.status_code == 400
     assert set(r.json()["error"]["details"]) >= {"start_date", "days", "interests"}
+
+
+def test_llm_truncated_json_is_rejected_not_crashing():
+    from trips import llm
+
+    result, reasons, rejected, errors = llm.parse_and_validate('Еве план {"days": [', {1, 2}, 2)
+    assert result is None and errors == ["Невалиден JSON од моделот"]

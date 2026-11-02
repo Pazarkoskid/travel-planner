@@ -1,4 +1,4 @@
-import { t } from "../i18n";
+gimport { t } from "../i18n";
 import { FormEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";

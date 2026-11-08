@@ -37,6 +37,20 @@ def test_llm_unknown_ids_are_rejected(tourist, city, places, settings):
     assert run.selected_place_ids.count(kaneo) == 1
 
 
+def test_llm_free_text_reasons_are_not_shown(tourist, city, places, settings):
+    """Образложенијата во планот се шаблонски од базата; текстот на моделот се отфрла."""
+    settings.LLM_PROVIDER, settings.ANTHROPIC_API_KEY = "anthropic", "test"
+    kaneo = places["kaneo"].pk
+    fake = ('{"days": [{"day": 1, "place_ids": [%d], "reasons": {"%d": "отворено до 20 часот, влез 2 EUR"}}]}'
+            % (kaneo, kaneo))
+    with mock.patch.object(llm, "call_llm", return_value=fake):
+        trip = make_trip(tourist, city)
+        run = generate_plan(trip)
+    reasons = [it.reason for d in trip.itinerary_days.all() for it in d.items.all()]
+    assert reasons and not any("20 часот" in r for r in reasons)
+    assert run.validation_result["model_reasons_discarded"] == 1
+
+
 def test_llm_failure_falls_back(tourist, city, places, settings):
     settings.LLM_PROVIDER, settings.ANTHROPIC_API_KEY = "anthropic", "test"
     with mock.patch.object(llm, "call_llm", side_effect=TimeoutError):
@@ -78,3 +92,28 @@ def test_llm_truncated_json_is_rejected_not_crashing():
 
     result, reasons, rejected, errors = llm.parse_and_validate('Еве план {"days": [', {1, 2}, 2)
     assert result is None and errors == ["Невалиден JSON од моделот"]
+
+
+def test_gemini_provider_uses_same_validation(tourist, city, places, settings):
+    """Gemini е втор провајдер: ист промпт, иста валидација, непознатите ID се отфрлаат."""
+    import io
+    import json as _json
+
+    settings.LLM_PROVIDER, settings.GEMINI_API_KEY, settings.LLM_MODEL = "gemini", "test", "gemini-2.5-flash"
+    kaneo = places["kaneo"].pk
+    text = _json.dumps({"days": [{"day": 1, "place_ids": [kaneo, 999999]}]})
+    payload = _json.dumps({"candidates": [{"content": {"parts": [{"text": text}]}}]}).encode()
+
+    class Resp(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    with mock.patch("urllib.request.urlopen", return_value=Resp(payload)) as up:
+        trip = make_trip(tourist, city)
+        run = generate_plan(trip)
+    assert "generativelanguage.googleapis.com" in up.call_args[0][0].full_url
+    assert run.provider == "gemini"
+    assert "999999" in [str(x) for x in run.rejected_ids]

@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+import urllib.error
 import urllib.request
 
 from django.conf import settings
@@ -13,7 +15,11 @@ SYSTEM = (
 
 
 def llm_enabled():
-    return settings.LLM_PROVIDER == "anthropic" and bool(settings.ANTHROPIC_API_KEY)
+    if settings.LLM_PROVIDER == "anthropic":
+        return bool(settings.ANTHROPIC_API_KEY)
+    if settings.LLM_PROVIDER == "gemini":
+        return bool(getattr(settings, "GEMINI_API_KEY", ""))
+    return False
 
 
 def build_prompt(trip, candidates, per_day, instructions=""):
@@ -24,12 +30,18 @@ def build_prompt(trip, candidates, per_day, instructions=""):
         f"Интереси: {', '.join(trip.interests) or 'општо'}. Темпо: {trip.pace} (до {per_day} места дневно). "
         f"Превоз: {trip.transport}. Дополнителни барања: {instructions or 'нема'}.\n"
         f"Кандидати: {json.dumps(cand, ensure_ascii=False)}\n"
-        'Формат: {"days": [{"day": 1, "place_ids": [1, 2], "reasons": {"1": "кратко зошто"}}]}. '
+        'Формат: {"days": [{"day": 1, "place_ids": [1, 2]}]}. '
         "Групирај места што се блиску во ист ден. Секое место најмногу еднаш."
     )
 
 
 def call_llm(prompt):
+    if settings.LLM_PROVIDER == "gemini":
+        return _call_gemini(prompt)
+    return _call_anthropic(prompt)
+
+
+def _call_anthropic(prompt):
     body = json.dumps({
         "model": settings.LLM_MODEL, "max_tokens": 1500, "system": SYSTEM,
         "messages": [{"role": "user", "content": prompt}],
@@ -42,6 +54,31 @@ def call_llm(prompt):
     with urllib.request.urlopen(req, timeout=settings.LLM_TIMEOUT_SECONDS) as resp:
         data = json.loads(resp.read().decode())
     return "".join(block.get("text", "") for block in data.get("content", []))
+
+
+def _call_gemini(prompt, retries=3):
+    """Google Gemini API (generateContent). Истиот промпт и истата валидација како за Claude."""
+    body = json.dumps({
+        "systemInstruction": {"parts": [{"text": SYSTEM}]},
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"responseMimeType": "application/json", "maxOutputTokens": 8192},  # Gemini 3 ги брои и токените за размислување
+    }).encode()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.LLM_MODEL}:generateContent"
+    for attempt in range(retries + 1):
+        req = urllib.request.Request(url, data=body, method="POST", headers={
+            "x-goog-api-key": settings.GEMINI_API_KEY, "content-type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=settings.LLM_TIMEOUT_SECONDS) as resp:
+                data = json.loads(resp.read().decode())
+            break
+        except urllib.error.HTTPError as exc:
+            # 429/503 = ограничување на бесплатниот план или преоптоварување; почекај и пробај пак
+            if exc.code in (429, 503) and attempt < retries:
+                time.sleep(10 * (attempt + 1))
+                continue
+            raise
+    parts = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+    return "".join(p.get("text", "") for p in parts)
 
 
 def parse_and_validate(raw, valid_ids, days):

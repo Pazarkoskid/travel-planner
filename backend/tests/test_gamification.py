@@ -80,3 +80,28 @@ def test_private_profile(tourist, other_tourist):
     tourist.save()
     assert client_for(other_tourist).get("/api/v1/users/ana/").status_code == 403
     assert client_for(tourist).get("/api/v1/users/ana/").status_code == 200
+
+
+def test_stored_photo_has_no_exif_gps(tourist, places):
+    """EXIF GPS се чита за проверка, но не се зачувува во датотеката во јавниот bucket."""
+    import io
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    p = places["kaneo"]
+    img = Image.new("RGB", (16, 16), (40, 50, 60))
+    exif = Image.Exif()
+    gps = {1: "N", 2: (41.0, 6.0, 40.0), 3: "E", 4: (20.0, 47.0, 20.0)}
+    exif[0x8825] = gps
+    exif[306] = "2026:05:01 10:00:00"
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", exif=exif.tobytes())
+    upload = SimpleUploadedFile("gps.jpg", buf.getvalue(), content_type="image/jpeg")
+
+    checkin, _ = services.create_checkin(tourist, p, upload)
+    assert checkin.exif_lat is not None and checkin.exif_lng is not None  # прочитано за верификација
+    checkin.image.open("rb")
+    stored = Image.open(checkin.image)
+    assert not stored.getexif().get_ifd(0x8825)  # нема GPS во зачуваната слика
+    assert "exif" not in stored.info

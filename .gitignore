@@ -10,3 +10,4 @@ frontend/dist/
 .DS_Store
 ui-sliki/
 .venv/
+backend/eval_results/

@@ -262,7 +262,7 @@ def generate_plan(trip, instructions=""):
         try:
             selection, reasons, rejected, validation_errors = llm.select_with_llm(
                 trip, candidates[:40], per_day, trip.modifiers.get("last_instruction", ""))
-            provider, model_name = "anthropic", llm.settings.LLM_MODEL
+            provider, model_name = llm.settings.LLM_PROVIDER, llm.settings.LLM_MODEL
             if selection is None or not any(selection):
                 raise ValueError("празен избор")
         except Exception as exc:
@@ -349,7 +349,9 @@ def generate_plan(trip, instructions=""):
                     day=day, place_id=c["id"], source_type="PLACE", title=c["name"], order_index=idx,
                     start_time=it["start"].time(), end_time=it["end"].time(),
                     travel_minutes_from_prev=round(it["travel"], 1), distance_km_from_prev=round(it["km"], 2),
-                    est_cost=cost, reason=reasons.get(c["id"]) or c["reason"] or "блиску до маршрутата",
+                    # Образложението е секогаш шаблонско, од бодувањето врз податоците од базата.
+                    # Слободниот текст од моделот не се прикажува (нефункционално барање за доверливост).
+                    est_cost=cost, reason=c["reason"] or "блиску до маршрутата",
                     warning=it["warning"][:300],
                 )
                 last_lat, last_lng = c["lat"], c["lng"]
@@ -363,7 +365,8 @@ def generate_plan(trip, instructions=""):
         run = AIPlanRun.objects.create(
             trip=trip, provider=provider, model=model_name, routing_provider=routing_provider,
             selected_place_ids=all_ids, rejected_ids=[str(r) for r in rejected],
-            validation_result={"valid": True, "errors": validation_errors, "unknown_ids_rejected": len(rejected)},
+            validation_result={"valid": True, "errors": validation_errors, "unknown_ids_rejected": len(rejected),
+                               "model_reasons_discarded": len(reasons)},
             metrics=metrics, instructions=(instructions or "")[:500], duration_ms=metrics["generation_ms"],
         )
     return run

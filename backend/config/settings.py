@@ -203,7 +203,9 @@ if not DEBUG:
 
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "none")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-LLM_MODEL = os.environ.get("LLM_MODEL", "claude-sonnet-5-5")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+_DEFAULT_MODEL = {"gemini": "gemini-2.5-flash"}.get(LLM_PROVIDER, "claude-sonnet-5-5")
+LLM_MODEL = os.environ.get("LLM_MODEL", _DEFAULT_MODEL)
 LLM_TIMEOUT_SECONDS = int(os.environ.get("LLM_TIMEOUT_SECONDS", "25"))
 
 ROUTING_PROVIDER = os.environ.get("ROUTING_PROVIDER", "haversine")

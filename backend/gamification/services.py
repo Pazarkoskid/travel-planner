@@ -5,7 +5,10 @@ from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import Count
 from django.utils import timezone
-from PIL import Image
+import io
+
+from django.core.files.base import ContentFile
+from PIL import Image, ImageOps
 
 from core.exceptions import ServiceError
 
@@ -43,6 +46,29 @@ def read_exif(fileobj):
     finally:
         fileobj.seek(0)
     return lat, lng, taken
+
+
+def strip_metadata(fileobj):
+    """Враќа нова копија од сликата без EXIF/XMP метаподатоци (вкл. GPS).
+
+    Координатите се читаат пред ова (read_exif) и се чуваат само во базата, а
+    датотеката што оди во јавниот bucket не содржи локација.
+    """
+    fileobj.seek(0)
+    img = Image.open(fileobj)
+    fmt = img.format
+    img = ImageOps.exif_transpose(img)  # ја зачувува ориентацијата пред да се отстрани EXIF
+    if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+        img = img.convert("RGB")
+    clean = Image.frombytes(img.mode, img.size, img.tobytes())  # само пиксели, без img.info/EXIF
+    if img.mode == "P" and img.getpalette():
+        clean.putpalette(img.getpalette())
+    buf = io.BytesIO()
+    save_kwargs = {"quality": 90} if fmt in ("JPEG", "WEBP") else {}
+    clean.save(buf, format=fmt, **save_kwargs)
+    fileobj.seek(0)
+    name = getattr(fileobj, "name", "photo") or "photo"
+    return ContentFile(buf.getvalue(), name=name.rsplit("/", 1)[-1])
 
 
 def validate_image(fileobj):
@@ -105,9 +131,10 @@ def create_checkin(user, place, image, client_lat=None, client_lng=None, caption
     if taken and taken > timezone.now() + timedelta(hours=1):
         notes.append("EXIF датумот е во иднина — игнориран.")
         taken = None
+    clean_image = strip_metadata(image)
     with transaction.atomic():
         checkin = PhotoCheckIn.objects.create(
-            user=user, place=place, image=image, image_sha256=digest, client_lat=client[0] if client else None,
+            user=user, place=place, image=clean_image, image_sha256=digest, client_lat=client[0] if client else None,
             client_lng=client[1] if client else None, exif_lat=exif_lat, exif_lng=exif_lng, taken_at=taken,
             distance_m=round(distance, 1) if distance is not None else None, status=status, verification_notes=notes,
         )
